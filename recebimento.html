@@ -71,12 +71,13 @@
   </table>
   <div id="notaOverlay"></div>
   <div id="notaPopup"><h2>Nota Completa</h2><div id="notaConteudo"></div><button id="fecharPopup">Fechar</button></div>
+
   <script>
     const sheetID = "1LaYf3GKID_HdueUpZax7J_aco2-a1UVFBz1pZ4CkUGk";
     const gid = "0";
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`;
     const colunasDesejadas = ["SENHA","DATA","CENTRAL","CARGA/TRANSPORTE","NOTAS","STATUS DA CARGA","FORNECEDOR","TIPO DE PRODUTO"];
-    Papa.parse(csvUrl, {
+
+    Papa.parse(`https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`, {
       download: true, header: true,
       complete: function (results) {
         const data = results.data;
@@ -84,10 +85,16 @@
         results.meta.fields = results.meta.fields.map(f => f.trim());
         data.forEach(row => { Object.keys(row).forEach(k => { if (k !== k.trim()) { row[k.trim()] = row[k]; delete row[k]; } }); });
         data.forEach(row => { colunasDesejadas.forEach(col => { if (row[col]) row[col] = row[col].trim(); }); });
+
         const headerRow = document.querySelector("#planilha thead tr.headers");
         const filterRow = document.querySelector("#planilha thead tr.filters");
         const tableBody = document.querySelector("#planilha tbody");
-        colunasDesejadas.forEach(col => { headerRow.innerHTML += `<th>${col}</th>`; filterRow.innerHTML += `<th><select class="filter-select"><option value="">Filtrar</option></select></th>`; });
+
+        colunasDesejadas.forEach(col => {
+          headerRow.innerHTML += `<th>${col}</th>`;
+          filterRow.innerHTML += `<th><select class="filter-select"><option value="">Filtrar</option></select></th>`;
+        });
+
         data.forEach(row => {
           let rowHtml = "<tr>";
           colunasDesejadas.forEach(col => {
@@ -96,36 +103,100 @@
             if (col === "NOTAS") { rowHtml += `<td class="nota-cell" data-nota="${valor}">${valor}</td>`; }
             else { rowHtml += `<td>${valor}</td>`; }
           });
-          rowHtml += "</tr>"; tableBody.innerHTML += rowHtml;
+          rowHtml += "</tr>";
+          tableBody.innerHTML += rowHtml;
         });
+
+        // Inicializa DataTable com stateSave
         const table = $("#planilha").DataTable({
-          paging: false, searching: true, info: false, scrollX: true, autoWidth: false,
+          paging: false,
+          searching: true,
+          info: false,
+          scrollX: true,
+          autoWidth: false,
           fixedHeader: { header: true, headerOffset: 0 },
+          stateSave: true, // ✅ mantém filtros e busca ao recarregar
           language: { search: "Buscar:", zeroRecords: "Nenhum registro encontrado", infoEmpty: "Nenhum dado disponível" }
         });
-        // ✅ Popular filtros
+
+        // Popular filtros
         table.columns().every(function () {
           const column = this;
           const select = $(".filters th").eq(column.index()).find("select");
-          column.data().unique().sort().each(function (d) { if (d) select.append('<option value="'+d+'">'+d+'</option>'); });
+          column.data().unique().sort().each(function (d) {
+            if (d) select.append('<option value="'+d+'">'+d+'</option>');
+          });
           select.on("change", function () {
             const val = $.fn.dataTable.util.escapeRegex($(this).val());
             column.search(val ? '^'+val+'$' : '', true, false).draw();
           });
         });
+
+        // ✅ Sincroniza selects com estado salvo
+        const state = table.state.loaded();
+        if(state){
+          table.columns().every(function(){
+            const column = this;
+            const savedSearch = state.columns[column.index()].search;
+            const select = $(".filters th").eq(column.index()).find("select");
+            if(savedSearch){
+              select.val(savedSearch.replace(/[\^$]/g,'')); // remove regex
+              column.search(savedSearch, true, false).draw(false);
+            }
+          });
+        }
+
         $(".dataTables_wrapper").css("position","relative"); 
         $("#planilha_filter").append('<button id="btnShare">📤 Compartilhar</button><div id="shareMenu"><div class="share-option" data-type="pdf">📄 Exportar PDF</div><div class="share-option" data-type="excel">📊 Exportar Excel</div></div>');
-        const shareBtn = document.getElementById("btnShare"); const shareMenu = document.getElementById("shareMenu");
-        shareBtn.addEventListener("click", () => { shareMenu.style.left = (shareBtn.offsetLeft)+"px"; shareMenu.style.top = (shareBtn.offsetTop + shareBtn.offsetHeight + 5)+"px"; shareMenu.style.display = "block"; });
+
+        const shareBtn = document.getElementById("btnShare");
+        const shareMenu = document.getElementById("shareMenu");
+        shareBtn.addEventListener("click", () => {
+          shareMenu.style.left = (shareBtn.offsetLeft)+"px";
+          shareMenu.style.top = (shareBtn.offsetTop + shareBtn.offsetHeight + 5)+"px";
+          shareMenu.style.display = "block";
+        });
         document.addEventListener("click", (e) => { if (!shareBtn.contains(e.target) && !shareMenu.contains(e.target)) { shareMenu.style.display = "none"; } });
-        $(document).on("click", ".share-option", function() { const type = $(this).data("type"); if (type === "pdf") exportPDF(table); if (type === "excel") exportExcel(table); shareMenu.style.display = "none"; });
+        $(document).on("click", ".share-option", function() {
+          const type = $(this).data("type");
+          if (type === "pdf") exportPDF(table);
+          if (type === "excel") exportExcel(table);
+          shareMenu.style.display = "none";
+        });
+
       }
     });
-    $(document).on("click", ".nota-cell", function() { const nota = $(this).data("nota"); $("#notaConteudo").text(nota); $("#notaOverlay, #notaPopup").fadeIn(200); });
-    $("#fecharPopup, #notaOverlay").on("click", function() { $("#notaOverlay, #notaPopup").fadeOut(200); });
-    function exportPDF(table) { const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: "landscape" }); const headers = colunasDesejadas; const data = table.rows({ search: "applied" }).data().toArray();
-      doc.autoTable({ head: [headers], body: data, styles: { fontSize: 8, cellPadding: 2 }, columnStyles: { 4: { cellWidth: 60, overflow: "linebreak" } } }); doc.save("recebimento.pdf"); }
-    function exportExcel(table) { const headers = colunasDesejadas; const data = table.rows({ search: "applied" }).data().toArray(); const ws_data = [headers]; data.forEach(row => ws_data.push([...row])); const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet(ws_data); XLSX.utils.book_append_sheet(wb, ws, "Recebimento"); XLSX.writeFile(wb, "recebimento.xlsx"); }
+
+    // Pop-up nota
+    $(document).on("click", ".nota-cell", function() {
+      const nota = $(this).data("nota");
+      $("#notaConteudo").text(nota);
+      $("#notaOverlay, #notaPopup").fadeIn(200);
+    });
+    $("#fecharPopup, #notaOverlay").on("click", function() {
+      $("#notaOverlay, #notaPopup").fadeOut(200);
+    });
+
+    // Export PDF/Excel
+    function exportPDF(table) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: "landscape" });
+      const headers = colunasDesejadas;
+      const data = table.rows({ search: "applied" }).data().toArray();
+      doc.autoTable({ head: [headers], body: data, styles: { fontSize: 8, cellPadding: 2 }, columnStyles: { 4: { cellWidth: 60, overflow: "linebreak" } } });
+      doc.save("recebimento.pdf");
+    }
+    function exportExcel(table) {
+      const headers = colunasDesejadas;
+      const data = table.rows({ search: "applied" }).data().toArray();
+      const ws_data = [headers];
+      data.forEach(row => ws_data.push([...row]));
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(ws_data);
+      XLSX.utils.book_append_sheet(wb, ws, "Recebimento");
+      XLSX.writeFile(wb, "recebimento.xlsx");
+    }
+
   </script>
 </body>
 </html>
