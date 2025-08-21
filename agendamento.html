@@ -34,9 +34,20 @@
       margin: 0;
     }
 
-    header { text-align: center; margin-bottom: 20px; }
-    h1 { color: white; font-size: 6vw; margin: 10px 0 20px 0; }
-    @media (min-width: 768px) { h1 { font-size: 28px; } }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      color: white;
+      font-size: 6vw;
+      margin: 10px 0 20px 0;
+    }
+
+    @media (min-width: 768px) {
+      h1 { font-size: 28px; }
+    }
 
     .table-container {
       overflow-x: auto;
@@ -46,12 +57,27 @@
       margin-top: 10px;
     }
 
-    table { border-collapse: collapse; font-size: 13px; width: 100%; min-width: 800px; }
-    thead tr th { background: var(--cor-cabecalho); color: var(--cor-texto-cabecalho); padding: 8px 12px; text-align: center; font-weight: bold; white-space: nowrap; }
+    table {
+      border-collapse: collapse;
+      font-size: 13px;
+      width: 100%;
+      min-width: 800px;
+    }
+
+    thead tr th {
+      background: var(--cor-cabecalho);
+      color: var(--cor-texto-cabecalho);
+      padding: 8px 12px;
+      text-align: center;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
     tbody tr:nth-child(even) { background-color: var(--cor-linha-par); }
     tbody tr:nth-child(odd) { background-color: var(--cor-linha-impar); }
+
     td, th { border: 1px solid #444; box-shadow: inset 0 0 3px rgba(0,0,0,0.4); }
-    td { padding: 8px 12px; border-bottom: 1px solid #444; white-space: nowrap; text-align: center; }
+    td { padding: 8px 12px; white-space: nowrap; text-align: center; }
 
     .filter-select {
       width: 100%;
@@ -66,9 +92,18 @@
       box-sizing: border-box;
     }
 
+    /* Botão compartilhar */
     .menu { position: relative; display: inline-block; margin-bottom: 10px; }
     .menu button { background: #007bff; color: #fff; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 14px; }
-    .menu-content { display: none; position: absolute; background: #fff; color: #333; box-shadow: 0px 4px 8px rgba(0,0,0,0.1); z-index: 1; min-width: 150px; }
+    .menu-content {
+      display: none;
+      position: absolute;
+      background: #fff;
+      color: #333;
+      box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+      z-index: 1;
+      min-width: 150px;
+    }
     .menu-content a { display: block; padding: 10px; text-decoration: none; color: #333; }
     .menu-content a:hover { background: #f1f1f1; }
     .menu:hover .menu-content { display: block; }
@@ -104,6 +139,13 @@
     </table>
   </div>
 
+  <button id="installBtn" style="
+    position: fixed; bottom: 20px; right: 20px; background: #b30000;
+    color: white; border: none; padding: 12px 16px; border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4); cursor: pointer; font-size: 14px;
+    display: none; z-index: 1000;
+  ">📲 Instalar App</button>
+
   <script>
     const sheetID = "18Tl0HJGrfBj7tXfwaLSKCr8JNycavQ2wZnOQPe9_B04";
     const gidPinheiros = "0";
@@ -117,19 +159,16 @@
     let colunas = [];
 
     function carregarDados(url, callback) {
-      Papa.parse(url, {
-        download: true,
-        header: true,
-        complete: function(results) {
-          if (colunas.length === 0) colunas = results.meta.fields;
-          allData = allData.concat(results.data);
-          callback();
-        }
-      });
+      Papa.parse(url, { download: true, header: true, complete: function(results) {
+        if(colunas.length === 0) colunas = results.meta.fields;
+        allData = allData.concat(results.data);
+        callback();
+      }});
     }
 
     function inicializarTabela() {
-      if (allData.length === 0) return;
+      if(!allData.length) return;
+
       const headerRow = document.querySelector("#planilha thead tr.headers");
       const filterRow = document.querySelector("#planilha thead tr.filters");
       const tableBody = document.querySelector("#planilha tbody");
@@ -141,73 +180,76 @@
 
       allData.forEach(row => {
         let rowHtml = "<tr>";
-        colunas.forEach(col => rowHtml += `<td>${row[col] || ""}</td>`);
+        colunas.forEach(col => rowHtml += `<td>${row[col]||""}</td>`);
         rowHtml += "</tr>";
         tableBody.innerHTML += rowHtml;
       });
 
       const table = $("#planilha").DataTable({
-        paging: false,
-        searching: true,
-        info: false,
-        scrollX: true,
-        autoWidth: false,
-        stateSave: true, // salva estado do filtro
-        language: { search: "Buscar:", zeroRecords: "Nenhum registro encontrado", infoEmpty: "Nenhum dado disponível" }
+        paging: false, searching: true, info: false, scrollX: true, autoWidth: false,
+        stateSave: true,
+        language: { search:"Buscar:", zeroRecords:"Nenhum registro encontrado", infoEmpty:"Nenhum dado disponível" }
       });
 
-      table.columns().every(function (i) {
+      table.columns().every(function(i){
         const column = this;
         const select = $(filterRow).find("select").eq(i);
+        column.data().unique().sort().each(function(d){ if(d) select.append(`<option value="${d}">${d}</option>`); });
 
-        column.data().unique().sort().each(function(d) {
-          if(d) select.append(`<option value="${d}">${d}</option>`);
-        });
-
-        // Recupera valor salvo no stateSave
+        // ✅ Manter filtro visual após recarregar página
         const state = table.state.loaded();
-        if (state) {
-          const val = state.columns[i].search.search.replace(/[\^$]/g,'');
-          if(val) select.val(val).trigger('change');
+        if(state){
+          const val = state.columns[i].search.search;
+          if(val){
+            select.val(val.replace(/[\^$]/g,''));
+            column.search(val,true,false).draw();
+          }
         }
 
-        select.on("change", function() {
+        select.on("change",function(){
           const val = $.fn.dataTable.util.escapeRegex($(this).val());
-          column.search(val ? "^" + val + "$" : "", true, false).draw();
+          column.search(val ? "^"+val+"$" : "",true,false).draw();
         });
       });
     }
 
-    carregarDados(urls[0], () => carregarDados(urls[1], inicializarTabela));
+    carregarDados(urls[0],()=>{ carregarDados(urls[1],inicializarTabela); });
 
-    // Exportar PDF
-    function exportarPDF() {
+    function exportarPDF(){
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF('landscape');
-      doc.text("Relatório de Agendamento", 14, 10);
-
-      const headerCols = Array.from(document.querySelectorAll("#planilha thead tr.headers th")).map(th => th.innerText);
-      const rows = Array.from(document.querySelectorAll("#planilha tbody tr")).map(tr => Array.from(tr.querySelectorAll("td")).map(td => td.innerText));
-
-      doc.autoTable({ head:[headerCols], body: rows, startY:20, styles:{fontSize:9, cellPadding:3, overflow:'linebreak', halign:'center', valign:'middle'}, headStyles:{fillColor:[179,0,0], textColor:[255,255,255]}, bodyStyles:{fontSize:9} });
-
+      doc.text("Relatório de Agendamento",14,10);
+      const headerCols = [...document.querySelectorAll("#planilha thead tr.headers th")].map(th=>th.innerText);
+      const rows = [...document.querySelectorAll("#planilha tbody tr")].map(tr=>[...tr.querySelectorAll("td")].map(td=>td.innerText));
+      doc.autoTable({ head:[headerCols], body:rows, startY:20, styles:{fontSize:9,cellPadding:3,overflow:'linebreak',halign:'center',valign:'middle'}, headStyles:{fillColor:[179,0,0],textColor:[255,255,255],fontSize:10} });
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       doc.save(`agendamento_${dataHoje}.pdf`);
     }
 
-    // Exportar Excel
-    function exportarExcel() {
-      const headerCols = Array.from(document.querySelectorAll("#planilha thead tr.headers th")).map(th => th.innerText);
-      const rows = Array.from(document.querySelectorAll("#planilha tbody tr")).map(tr => Array.from(tr.querySelectorAll("td")).map(td => td.innerText));
-
-      const ws_data = [headerCols, ...rows];
+    function exportarExcel(){
+      const headerCols = [...document.querySelectorAll("#planilha thead tr.headers th")].map(th=>th.innerText);
+      const rows = [...document.querySelectorAll("#planilha tbody tr")].map(tr=>[...tr.querySelectorAll("td")].map(td=>td.innerText));
+      const ws_data = [headerCols,...rows];
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.aoa_to_sheet(ws_data);
-      XLSX.utils.book_append_sheet(wb, ws, "Agendamento");
-
+      XLSX.utils.book_append_sheet(wb,ws,"Agendamento");
       const dataHoje = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
-      XLSX.writeFile(wb, `agendamento_${dataHoje}.xlsx`);
+      XLSX.writeFile(wb,`agendamento_${dataHoje}.xlsx`);
     }
+
+    // PWA Install
+    if("serviceWorker" in navigator) navigator.serviceWorker.register("./service-worker.js");
+    let deferredPrompt;
+    const installBtn = document.getElementById("installBtn");
+    window.addEventListener("beforeinstallprompt", (e)=>{
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = "block";
+    });
+    installBtn.addEventListener("click",async ()=>{
+      installBtn.style.display = "none";
+      if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; }
+    });
   </script>
 
 </body>
