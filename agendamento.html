@@ -221,10 +221,22 @@ function inicializarTabela() {
     tableBody.innerHTML += rowHtml;
   });
 
-  // ativa DataTable
+  // ativa DataTable com paginação
   const table = $("#planilha").DataTable({
-    paging: false, searching: true, info: false, scrollX: true, autoWidth: false,
-    language: { search:"Buscar:", zeroRecords:"Nenhum registro encontrado", infoEmpty:"Nenhum dado disponível" }
+    paging: true,           // ativa paginação
+    pageLength: 50,         // 50 registros por página
+    lengthMenu: [25, 50, 100, 200],
+    searching: true,
+    info: true,
+    scrollX: true,
+    autoWidth: false,
+    language: { 
+      search:"Buscar:", 
+      zeroRecords:"Nenhum registro encontrado", 
+      info:"Mostrando _START_ até _END_ de _TOTAL_ registros", 
+      infoEmpty:"Nenhum dado disponível", 
+      lengthMenu: "Mostrar _MENU_ registros por página"
+    }
   });
 
   // filtros dinâmicos
