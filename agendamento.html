@@ -187,11 +187,15 @@ let allData = [];
 let colunas = [];
 
 function carregarDados(url, callback) {
-  Papa.parse(url, { download:true, header:true, complete:function(results){
-    if(colunas.length===0) colunas = results.meta.fields;
-    allData = allData.concat(results.data);
-    callback();
-  }});
+  Papa.parse(url, { 
+    download:true, 
+    header:true, 
+    complete:function(results){
+      if(colunas.length===0) colunas = results.meta.fields;
+      allData = allData.concat(results.data);
+      callback();
+    }
+  });
 }
 
 function inicializarTabela() {
@@ -201,11 +205,13 @@ function inicializarTabela() {
   const filterRow = document.querySelector("#planilha thead tr.filters");
   const tableBody = document.querySelector("#planilha tbody");
 
+  // monta cabeçalho e filtros
   colunas.forEach(col=>{
     headerRow.innerHTML += `<th>${col}</th>`;
     filterRow.innerHTML += `<th><select class="filter-select"><option value="">Filtrar</option></select></th>`;
   });
 
+  // monta corpo da tabela
   allData.forEach(row=>{
     let rowHtml = "<tr>";
     colunas.forEach(col=>{
@@ -215,11 +221,13 @@ function inicializarTabela() {
     tableBody.innerHTML += rowHtml;
   });
 
+  // ativa DataTable
   const table = $("#planilha").DataTable({
     paging: false, searching: true, info: false, scrollX: true, autoWidth: false,
     language: { search:"Buscar:", zeroRecords:"Nenhum registro encontrado", infoEmpty:"Nenhum dado disponível" }
   });
 
+  // filtros dinâmicos
   table.columns().every(function(i){
     const column = this;
     const select = $(filterRow).find("select").eq(i);
@@ -242,8 +250,10 @@ function inicializarTabela() {
   });
 }
 
+// carrega as abas PINHEIROS e SERRA
 carregarDados(urls[0], function(){ carregarDados(urls[1], inicializarTabela); });
 
+// exportação PDF
 function exportarPDF(){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('landscape');
@@ -260,6 +270,7 @@ function exportarPDF(){
   doc.save(`agendamento_${dataHoje}.pdf`);
 }
 
+// exportação Excel
 function exportarExcel(){
   const headers = [];
   document.querySelectorAll("#planilha thead tr.headers th").forEach(th=>headers.push(th.innerText));
