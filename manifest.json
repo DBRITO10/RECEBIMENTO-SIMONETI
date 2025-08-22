@@ -1,6 +1,6 @@
 {
   "name": "Móveis Simonetti",
-  "short_name": "Simonetti",
+  "short_name": "MS Recebimento",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
