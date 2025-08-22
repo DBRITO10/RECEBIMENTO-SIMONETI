@@ -18,8 +18,8 @@
 
   <style>
     :root {
-      --cor-fundo-dashboard: #CDAA7D;
-      --cor-cabecalho: linear-gradient(90deg, #8B7355, #8B4726);
+      --cor-fundo-dashboard: #330000;
+      --cor-cabecalho: linear-gradient(90deg, #b30000, #800000);
       --cor-texto-cabecalho: #ffffff;
       --cor-linha-par: #4d0000;
       --cor-linha-impar: #3a0000;
@@ -75,13 +75,19 @@
       white-space: nowrap;
     }
 
-    tbody tr:nth-child(even) { background-color: var(--cor-linha-par); }
-    tbody tr:nth-child(odd) { background-color: var(--cor-linha-impar); }
+    tbody tr:nth-child(even) {
+      background-color: var(--cor-linha-par);
+    }
+
+    tbody tr:nth-child(odd) {
+      background-color: var(--cor-linha-impar);
+    }
 
     td, th {
       border: 1px solid #444;
       box-shadow: inset 0 0 3px rgba(0,0,0,0.4);
     }
+
     td {
       padding: 8px 12px;
       border-bottom: 1px solid #444;
@@ -102,18 +108,47 @@
       box-sizing: border-box;
     }
 
-    .menu { position: relative; display: inline-block; margin-bottom: 10px; }
-    .menu button { background: #007bff; color: #fff; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 14px; }
-    .menu-content { display: none; position: absolute; background: #fff; color: #333; box-shadow: 0px 4px 8px rgba(0,0,0,0.1); z-index: 1; min-width: 150px; }
-    .menu-content a { display: block; padding: 10px; text-decoration: none; color: #333; }
-    .menu-content a:hover { background: #f1f1f1; }
-    .menu:hover .menu-content { display: block; }
-  </style>
+    .menu {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
 
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#b30000">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-  <link rel="apple-touch-icon" href="icon-512.png">
+    .menu button {
+      background: #007bff;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .menu-content {
+      display: none;
+      position: absolute;
+      background: #fff;
+      color: #333;
+      box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+      z-index: 1;
+      min-width: 150px;
+    }
+
+    .menu-content a {
+      display: block;
+      padding: 10px;
+      text-decoration: none;
+      color: #333;
+    }
+
+    .menu-content a:hover {
+      background: #f1f1f1;
+    }
+
+    .menu:hover .menu-content {
+      display: block;
+    }
+  </style>
 </head>
 <body>
 
@@ -153,15 +188,20 @@ let allData = [];
 let colunas = [];
 
 function carregarDados(url, callback) {
-  Papa.parse(url, { download: true, header: true, complete: function(results){
-    if(colunas.length === 0) colunas = results.meta.fields;
-    allData = allData.concat(results.data);
-    callback();
-  }});
+  Papa.parse(url, {
+    download: true,
+    header: true,
+    complete: function(results) {
+      if (colunas.length === 0) colunas = results.meta.fields;
+      allData = allData.concat(results.data);
+      callback();
+    }
+  });
 }
 
 function inicializarTabela() {
-  if(allData.length === 0) return;
+  if (allData.length === 0) return;
+
   const headerRow = document.querySelector("#planilha thead tr.headers");
   const filterRow = document.querySelector("#planilha thead tr.filters");
   const tableBody = document.querySelector("#planilha tbody");
@@ -179,71 +219,64 @@ function inicializarTabela() {
   });
 
   const table = $("#planilha").DataTable({
-    paging: false, searching: true, info: false, scrollX: true, autoWidth: false,
+    paging: false,
+    searching: true,
+    info: false,
+    scrollX: true,
+    autoWidth: false,
     stateSave: true,
-    language: { search: "Buscar:", zeroRecords: "Nenhum registro encontrado", infoEmpty: "Nenhum dado disponível" }
+    language: {
+      search: "Buscar:",
+      zeroRecords: "Nenhum registro encontrado",
+      infoEmpty: "Nenhum dado disponível",
+    }
   });
 
-  table.columns().every(function(i){
+  table.columns().every(function(i) {
     const column = this;
     const select = $(filterRow).find("select").eq(i);
-    column.data().unique().sort().each(d => { if(d) select.append(`<option value="${d}">${d}</option>`); });
 
-    // ✅ Mantém filtro selecionado visual e funcional
+    // Popular opções do select
+    column.data().unique().sort().each(d => {
+      if(d) select.append(`<option value="${d}">${d}</option>`);
+    });
+
+    // Aplicar valor salvo (mantendo o texto)
     const state = table.state.loaded();
-    if(state){
-      const val = state.columns[i].search.search;
-      if(val){
-        const cleanVal = val.replace(/[\^$]/g,'');
-        select.val(cleanVal);
-        column.search(val,true,false).draw();
-        select.trigger("change"); // Atualiza o texto no select
-      }
+    if(state) {
+      const val = state.columns[i].search.search.replace(/[\^$]/g,'');
+      if(val) select.val(val);
+      column.search(val ? "^" + val + "$" : "", true, false);
     }
 
-    select.on("change", function(){
+    select.on("change", function() {
       const val = $.fn.dataTable.util.escapeRegex($(this).val());
-      column.search(val ? "^"+val+"$" : "", true, false).draw();
+      column.search(val ? "^" + val + "$" : "", true, false).draw();
     });
   });
 }
 
 carregarDados(urls[0], () => carregarDados(urls[1], inicializarTabela));
 
+// Funções de exportação
 function exportarPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('landscape');
-  doc.text("Relatório de Agendamento", 14, 10);
-  const headerCols = [];
-  document.querySelectorAll("#planilha thead tr.headers th").forEach(th => headerCols.push(th.innerText));
-  const rows = [];
-  document.querySelectorAll("#planilha tbody tr").forEach(tr => {
-    const row = [];
-    tr.querySelectorAll("td").forEach(td => row.push(td.innerText));
-    rows.push(row);
-  });
-  doc.autoTable({ head:[headerCols], body: rows, startY: 20, styles:{ fontSize:9, cellPadding:3, halign:'center', valign:'middle' }, headStyles:{ fillColor:[179,0,0], textColor:[255,255,255], fontSize:10 } });
-  const dataHoje = new Date().toLocaleDateString('pt-BR');
-  doc.save(`agendamento_${dataHoje}.pdf`);
+  const headerCols = Array.from(document.querySelectorAll("#planilha thead tr.headers th")).map(th => th.innerText);
+  const rows = Array.from(document.querySelectorAll("#planilha tbody tr")).map(tr => Array.from(tr.querySelectorAll("td")).map(td => td.innerText));
+  doc.autoTable({ head: [headerCols], body: rows, startY: 20, styles: { fontSize: 9, cellPadding: 3, halign: 'center', valign: 'middle' }, headStyles: { fillColor: [179,0,0], textColor: [255,255,255], fontSize: 10 } });
+  doc.save(`agendamento_${new Date().toLocaleDateString('pt-BR')}.pdf`);
 }
 
 function exportarExcel() {
-  const headerCols = [];
-  document.querySelectorAll("#planilha thead tr.headers th").forEach(th => headerCols.push(th.innerText));
-  const rows = [];
-  document.querySelectorAll("#planilha tbody tr").forEach(tr => {
-    const row = [];
-    tr.querySelectorAll("td").forEach(td => row.push(td.innerText));
-    rows.push(row);
-  });
-  const ws_data = [headerCols,...rows];
+  const headerCols = Array.from(document.querySelectorAll("#planilha thead tr.headers th")).map(th => th.innerText);
+  const rows = Array.from(document.querySelectorAll("#planilha tbody tr")).map(tr => Array.from(tr.querySelectorAll("td")).map(td => td.innerText));
+  const ws_data = [headerCols, ...rows];
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(ws_data);
   XLSX.utils.book_append_sheet(wb, ws, "Agendamento");
-  const dataHoje = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
-  XLSX.writeFile(wb, `agendamento_${dataHoje}.xlsx`);
+  XLSX.writeFile(wb, `agendamento_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.xlsx`);
 }
 </script>
-
 </body>
 </html>
