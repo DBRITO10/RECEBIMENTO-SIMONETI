@@ -18,30 +18,133 @@
 
   <style>
     :root {
-      --cor-fundo-dashboard: #330000;
-      --cor-cabecalho: linear-gradient(90deg, #b30000, #800000);
+      --cor-fundo-dashboard: #fafafa;
+      --cor-cabecalho: linear-gradient(90deg, #ff6666, #cc0000);
       --cor-texto-cabecalho: #ffffff;
-      --cor-linha-par: #4d0000;
-      --cor-linha-impar: #3a0000;
-      --cor-filtro: #660000;
+      --cor-linha-par: #ffe5e5;
+      --cor-linha-impar: #fff5f5;
+      --cor-filtro: #ffcccc;
     }
-    body { font-family: 'Segoe UI', sans-serif; background-color: var(--cor-fundo-dashboard); color: white; padding: 10px; margin: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--cor-fundo-dashboard);
+      color: #333;
+      padding: 10px;
+      margin: 0;
+    }
+
     header { text-align: center; margin-bottom: 20px; }
-    h1 { color: white; font-size: 6vw; margin: 10px 0 20px 0; }
-    @media (min-width: 768px) { h1 { font-size: 28px; } }
-    .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid #660000; border-radius: 6px; margin-top: 10px; }
-    table { border-collapse: collapse; font-size: 13px; width: 100%; min-width: 800px; }
-    thead tr th { background: var(--cor-cabecalho); color: var(--cor-texto-cabecalho); padding: 8px 12px; text-align: center; font-weight: bold; white-space: nowrap; }
+
+    h1 {
+      color: #cc0000;
+      font-size: 6vw;
+      margin: 10px 0 20px 0;
+      font-weight: bold;
+    }
+
+    @media (min-width: 768px) {
+      h1 { font-size: 28px; }
+    }
+
+    .table-container {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid #ff9999;
+      border-radius: 6px;
+      margin-top: 10px;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    table {
+      border-collapse: collapse;
+      font-size: 13px;
+      width: 100%;
+      min-width: 800px;
+    }
+
+    thead tr th {
+      background: var(--cor-cabecalho);
+      color: var(--cor-texto-cabecalho);
+      padding: 8px 12px;
+      text-align: center;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
     tbody tr:nth-child(even) { background-color: var(--cor-linha-par); }
     tbody tr:nth-child(odd) { background-color: var(--cor-linha-impar); }
-    td, th { border: 1px solid #444; box-shadow: inset 0 0 3px rgba(0,0,0,0.4); }
-    td { padding: 8px 12px; border-bottom: 1px solid #444; white-space: nowrap; text-align: center; }
-    .filter-select { width: 100%; min-width: 70px; padding: 6px 8px; font-size: 13px; background: var(--cor-filtro); border: none; border-radius: 4px; color: #eee; text-align: center; box-sizing: border-box; }
-    .menu { position: relative; display: inline-block; margin-bottom: 10px; }
-    .menu button { background: #007bff; color: #fff; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 14px; }
-    .menu-content { display: none; position: absolute; background: #fff; color: #333; box-shadow: 0px 4px 8px rgba(0,0,0,0.1); z-index: 1; min-width: 150px; }
-    .menu-content a { display: block; padding: 10px; text-decoration: none; color: #333; }
-    .menu-content a:hover { background: #f1f1f1; }
+
+    td, th {
+      border: 1px solid #ddd;
+      box-shadow: inset 0 0 2px rgba(0,0,0,0.05);
+    }
+
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #eee;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .filter-select {
+      width: 100%;
+      min-width: 70px;
+      padding: 6px 8px;
+      font-size: 13px;
+      background: var(--cor-filtro);
+      border: none;
+      border-radius: 4px;
+      color: #333;
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    .menu {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+
+    .menu button {
+      background: #cc0000;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+
+    .menu button:hover {
+      background: #a30000;
+    }
+
+    .menu-content {
+      display: none;
+      position: absolute;
+      background: #fff;
+      color: #333;
+      box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+      z-index: 1;
+      min-width: 150px;
+      border-radius: 4px;
+    }
+
+    .menu-content a {
+      display: block;
+      padding: 10px;
+      text-decoration: none;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .menu-content a:hover {
+      background: #fbeaea;
+    }
+
     .menu:hover .menu-content { display: block; }
   </style>
 </head>
@@ -121,10 +224,8 @@ function inicializarTabela() {
     const column = this;
     const select = $(filterRow).find("select").eq(i);
 
-    // popular opções
     column.data().unique().sort().each(d=>{ if(d) select.append(`<option value="${d}">${d}</option>`); });
 
-    // restaurar valor salvo do localStorage
     const savedVal = localStorage.getItem('filtroColuna'+i);
     if(savedVal){
       select.val(savedVal);
@@ -132,7 +233,6 @@ function inicializarTabela() {
       column.search(valRegex ? '^'+valRegex+'$' : '', true, false).draw();
     }
 
-    // ao mudar, salva no localStorage e aplica filtro
     select.on("change", function(){
       const val = $(this).val();
       localStorage.setItem('filtroColuna'+i, val);
@@ -144,7 +244,6 @@ function inicializarTabela() {
 
 carregarDados(urls[0], function(){ carregarDados(urls[1], inicializarTabela); });
 
-// Exportar PDF
 function exportarPDF(){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('landscape');
@@ -161,7 +260,6 @@ function exportarPDF(){
   doc.save(`agendamento_${dataHoje}.pdf`);
 }
 
-// Exportar Excel
 function exportarExcel(){
   const headers = [];
   document.querySelectorAll("#planilha thead tr.headers th").forEach(th=>headers.push(th.innerText));
