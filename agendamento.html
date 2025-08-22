@@ -184,14 +184,14 @@ const urls = [
 ];
 
 let allData = [];
-let colunas = [];
+// colunas fixas solicitadas
+let colunas = ["DATA", "CENTRAL", "CARGA/TRANSPORTE", "FORNECEDOR", "TIPO DE PRODUTO"];
 
 function carregarDados(url, callback) {
   Papa.parse(url, { 
     download:true, 
     header:true, 
     complete:function(results){
-      if(colunas.length===0) colunas = results.meta.fields;
       allData = allData.concat(results.data);
       callback();
     }
@@ -205,13 +205,13 @@ function inicializarTabela() {
   const filterRow = document.querySelector("#planilha thead tr.filters");
   const tableBody = document.querySelector("#planilha tbody");
 
-  // monta cabeçalho e filtros
+  // monta cabeçalho e filtros fixos
   colunas.forEach(col=>{
     headerRow.innerHTML += `<th>${col}</th>`;
     filterRow.innerHTML += `<th><select class="filter-select"><option value="">Filtrar</option></select></th>`;
   });
 
-  // monta corpo da tabela
+  // monta corpo da tabela apenas com as colunas desejadas
   allData.forEach(row=>{
     let rowHtml = "<tr>";
     colunas.forEach(col=>{
@@ -221,10 +221,10 @@ function inicializarTabela() {
     tableBody.innerHTML += rowHtml;
   });
 
-  // ativa DataTable com paginação
+  // ativa DataTable
   const table = $("#planilha").DataTable({
-    paging: true,           // ativa paginação
-    pageLength: 50,         // 50 registros por página
+    paging: true,
+    pageLength: 50,
     lengthMenu: [25, 50, 100, 200],
     searching: true,
     info: true,
