@@ -1,66 +1,127 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <title>AGENDAMENTO - MÓVEIS SIMONETTI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8" />
+<title>AGENDAMENTO - MÓVEIS SIMONETTI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Bibliotecas -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-  <script src="https://cdn.datatables.net/scroller/2.2.5/js/dataTables.scroller.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<!-- Bibliotecas -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/scroller/2.2.5/js/dataTables.scroller.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
-  <!-- CSS DataTables -->
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
-  <link rel="stylesheet" href="https://cdn.datatables.net/scroller/2.2.5/css/scroller.dataTables.min.css"/>
+<!-- CSS DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+<link rel="stylesheet" href="https://cdn.datatables.net/scroller/2.2.5/css/scroller.dataTables.min.css"/>
 
-  <style>
-    :root {
-      --cor-fundo-dashboard: #fafafa;
-      --cor-cabecalho: linear-gradient(90deg, #ff6666, #cc0000);
-      --cor-texto-cabecalho: #ffffff;
-      --cor-linha-par: #ffe5e5;
-      --cor-linha-impar: #fff5f5;
-      --cor-filtro: #ffcccc;
-    }
-    body { font-family: 'Segoe UI', sans-serif; background-color: var(--cor-fundo-dashboard); color: #333; padding: 10px; margin: 0; }
-    header { text-align: center; margin-bottom: 20px; }
-    h1 { color: #cc0000; font-size: 6vw; margin: 10px 0 20px 0; font-weight: bold; }
-    @media (min-width: 768px) { h1 { font-size: 28px; } }
-    .table-container { overflow-x: auto; border: 1px solid #ff9999; border-radius: 6px; margin-top: 10px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    table { 
-      border-collapse: collapse; 
-      font-size: 13px; 
-      width: 100%; 
-      min-width: 800px; 
-      table-layout: fixed; /* 🔥 Garante alinhamento */
-    }
-    thead tr th { background: var(--cor-cabecalho); color: var(--cor-texto-cabecalho); padding: 8px 12px; text-align: center; font-weight: bold; white-space: nowrap; }
-    tbody tr:nth-child(even) { background-color: var(--cor-linha-par); }
-    tbody tr:nth-child(odd) { background-color: var(--cor-linha-impar); }
-    td, th { border: 1px solid #ddd; box-shadow: inset 0 0 2px rgba(0,0,0,0.05); overflow: hidden; text-overflow: ellipsis; }
-    td { padding: 8px 12px; border-bottom: 1px solid #eee; white-space: nowrap; text-align: center; }
-    .filter-select { width: 100%; min-width: 70px; padding: 6px 8px; font-size: 13px; background: var(--cor-filtro); border: none; border-radius: 4px; color: #333; text-align: center; box-sizing: border-box; }
-    .menu { position: relative; display: inline-block; margin-bottom: 10px; }
-    .menu button { background: #cc0000; color: #fff; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 14px; transition: background 0.3s; }
-    .menu button:hover { background: #a30000; }
-    .menu-content { display: none; position: absolute; background: #fff; color: #333; box-shadow: 0px 4px 8px rgba(0,0,0,0.1); z-index: 1; min-width: 150px; border-radius: 4px; }
-    .menu-content a { display: block; padding: 10px; text-decoration: none; color: #333; font-size: 14px; }
-    .menu-content a:hover { background: #fbeaea; }
-    .menu:hover .menu-content { display: block; }
-  </style>
+<style>
+:root {
+  --cor-fundo-dashboard: #fafafa;
+  --cor-cabecalho: linear-gradient(90deg, #ff6666, #cc0000);
+  --cor-texto-cabecalho: #ffffff;
+  --cor-linha-par: #ffe5e5;
+  --cor-linha-impar: #fff5f5;
+  --cor-filtro: #ffcccc;
+}
+body { font-family: 'Segoe UI', sans-serif; background-color: var(--cor-fundo-dashboard); color: #333; padding: 10px; margin: 0; }
+header { text-align: center; margin-bottom: 20px; }
+h1 { color: #cc0000; font-size: 6vw; margin: 10px 0 20px 0; font-weight: bold; }
+@media (min-width: 768px) { h1 { font-size: 28px; } }
+.table-container { overflow-x: auto; border: 1px solid #ff9999; border-radius: 6px; margin-top: 10px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+table { border-collapse: collapse; font-size: 13px; width: 100%; min-width: 800px; table-layout: fixed; }
+thead tr th { background: var(--cor-cabecalho); color: var(--cor-texto-cabecalho); padding: 8px 12px; text-align: center; font-weight: bold; white-space: nowrap; }
+tbody tr:nth-child(even) { background-color: var(--cor-linha-par); }
+tbody tr:nth-child(odd) { background-color: var(--cor-linha-impar); }
+td, th { border: 1px solid #ddd; box-shadow: inset 0 0 2px rgba(0,0,0,0.05); overflow: hidden; text-overflow: ellipsis; }
+td { padding: 8px 12px; border-bottom: 1px solid #eee; white-space: nowrap; text-align: center; cursor: default; }
+.filter-select { width: 100%; min-width: 70px; padding: 6px 8px; font-size: 13px; background: var(--cor-filtro); border: none; border-radius: 4px; color: #333; text-align: center; box-sizing: border-box; cursor: pointer; }
+.menu { position: relative; display: inline-block; margin-bottom: 10px; }
+.menu button { background: #cc0000; color: #fff; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 14px; transition: background 0.3s; }
+.menu button:hover { background: #a30000; }
+.menu-content { display: none; position: absolute; background: #fff; color: #333; box-shadow: 0px 4px 8px rgba(0,0,0,0.1); z-index: 1; min-width: 150px; border-radius: 4px; }
+.menu-content a { display: block; padding: 10px; text-decoration: none; color: #333; font-size: 14px; }
+.menu-content a:hover { background: #fbeaea; }
+.menu:hover .menu-content { display: block; }
+
+/* Modal popup CARGAS */
+#modalCarga {
+  display:none;
+  position:fixed;
+  top:0; left:0; right:0; bottom:0;
+  background:rgba(0,0,0,0.5);
+  z-index:9999;
+  justify-content:center;
+  align-items:center;
+}
+#modalCarga .modal-content {
+  background:#fff;
+  padding:20px;
+  border-radius:8px;
+  max-width:400px;
+  width:90%;
+  text-align:center;
+  position:relative;
+  box-shadow:0 4px 12px rgba(0,0,0,0.3);
+}
+#modalCarga .modal-content h2 { color:#cc0000; margin-bottom:10px; }
+#modalCarga .modal-content p { font-size:14px; word-break:break-word; }
+#modalCarga .close-modal {
+  position:absolute;
+  top:10px;
+  right:15px;
+  cursor:pointer;
+  font-weight:bold;
+  font-size:18px;
+}
+</style>
 </head>
 <body>
+<script>
+  if (localStorage.getItem("isLoggedIn") !== "true") {
+    window.location.href = "login.html";
+  }
+</script>
+<div id="userBar" style="
+  background:#E6E6E6; 
+  padding:10px; 
+  display:flex; 
+  justify-content:space-between; 
+  align-items:center; 
+  border-radius:6px; 
+  margin-bottom:12px;
+">
+  <span id="welcomeUser" style="font-weight:bold; color:#333;"></span>
+  <button onclick="logout()" style="
+    background:#CC0000;
+    color:white;
+    border:none;
+    padding:6px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
+  ">Sair</button>
+</div>
+<script>
+  const username = localStorage.getItem("username") || "Usuário";
+  document.addEventListener("DOMContentLoaded", ()=>{
+    document.getElementById("welcomeUser").textContent = "Bem-vindo, " + username;
+  });
+  function logout(){
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("username");
+    window.location.href = "login.html";
+  }
+</script>
+
 
 <header>
   <h1>AGENDAMENTO - MÓVEIS SIMONETTI</h1>
 </header>
 
-<!-- Botão Compartilhar -->
 <div class="menu">
   <button>📤 Compartilhar</button>
   <div class="menu-content">
@@ -76,6 +137,15 @@
     </thead>
     <tbody></tbody>
   </table>
+</div>
+
+<!-- Modal CARGAS -->
+<div id="modalCarga">
+  <div class="modal-content">
+    <span class="close-modal">×</span>
+    <h2>Detalhes da Carga</h2>
+    <p id="conteudoCarga"></p>
+  </div>
 </div>
 
 <script>
@@ -104,12 +174,19 @@ function carregarDados(url, callback) {
   });
 }
 
+// Inicialização da Tabela com filtros interligados e popup
 function inicializarTabela() {
   if(allData.length===0) return;
 
-  $("#planilha").DataTable({
+  const tabela = $("#planilha").DataTable({
     data: allData,
-    columns: colunas.map(c => ({ data: c })),
+    columns: colunas.map(c => ({
+      data: c,
+      render: function(data, type, row, meta){
+        if(c === "CARGAS") return `<span class="popup-carga" style="color:#000000;cursor:pointer;" title="Clique para detalhes">${data}</span>`;
+        return data;
+      }
+    })),
     deferRender: true,
     scrollX: true,
     scroller: true,
@@ -132,33 +209,61 @@ function inicializarTabela() {
       paginate: { first: "Primeiro", previous: "Anterior", next: "Próximo", last: "Último" }
     },
     initComplete: function(){
-      this.api().columns().every(function(i){
-        const column = this;
-        const title = colunas[i];
+      const api = this.api();
+
+      colunas.forEach((colName, i) => {
+        const column = api.column(i);
         const $header = $(column.header()).empty();
         $header.append(`
           <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-            <span style="font-size:12px;font-weight:bold;color:white;">${title}</span>
-            <select class="filter-select">
-              <option value="">Filtrar</option>
-            </select>
+            <span style="font-size:12px;font-weight:bold;color:white;">${colName}</span>
+            <select class="filter-select"><option value="">Filtrar / Limpar</option></select>
           </div>
         `);
-        const select = $header.find("select");
+      });
 
-        select.on('change', function(){
-          const val = $.fn.dataTable.util.escapeRegex($(this).val());
-          column.search(val ? '^'+val+'$' : '', true, false).draw();
+      function atualizarFiltros() {
+        const dadosFiltrados = api.rows({ search: 'applied' }).data().toArray();
+        colunas.forEach((colName, i) => {
+          const select = $(api.column(i).header()).find('select');
+          const valAtual = select.val();
+          select.empty().append(`<option value="">Filtrar / Limpar</option>`);
+          let uniqueVals = [...new Set(dadosFiltrados.map(r => r[colName]).filter(Boolean))];
+          if(colName === "DATA"){
+            uniqueVals.sort((a,b)=>{ 
+              const toTime = v=>{ const [d,m,y]=v.split("/").map(Number); return new Date(y,m-1,d).getTime(); }
+              return toTime(a) - toTime(b);
+            });
+          } else { uniqueVals.sort(); }
+          uniqueVals.forEach(d=>select.append(`<option value="${d}">${d}</option>`));
+          if(uniqueVals.includes(valAtual)) select.val(valAtual);
         });
+      }
 
-        let dados = column.data().unique().toArray().filter(Boolean);
-        if(colunas[i]==="DATA"){
-          dados.sort((a,b)=>{ 
-            const toTime = v=>{ const [d,m,y]=v.split("/").map(Number); return new Date(y,m-1,d).getTime(); }
-            return toTime(a) - toTime(b);
-          });
-        } else { dados.sort(); }
-        dados.forEach(d=>select.append(`<option value="${d}">${d}</option>`));
+      atualizarFiltros();
+
+      api.columns().every(function(i){
+        $(this.header()).find('select').on('change', function(){
+          const val = $(this).val();
+          api.column(i).search(val ? '^'+$.fn.dataTable.util.escapeRegex(val)+'$' : '', true, false).draw();
+        });
+      });
+
+      api.on('draw', atualizarFiltros);
+
+      // Evento de popup CARGAS - substitui alert por modal
+      $('#planilha tbody').on('click', '.popup-carga', function(){
+        const conteudo = $(this).text();
+        $('#conteudoCarga').text(conteudo);
+        $('#modalCarga').css('display','flex');
+      });
+
+      $('.close-modal').on('click', function(){
+        $('#modalCarga').hide();
+      });
+
+      $('#modalCarga').on('click', function(e){
+        if(e.target.id === 'modalCarga') $(this).hide();
       });
     }
   });
@@ -166,58 +271,29 @@ function inicializarTabela() {
 
 carregarDados(urls[0], function(){ carregarDados(urls[1], inicializarTabela); });
 
+// Exportar PDF
 function exportarPDF(){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('landscape');
-
-  // Pega apenas os dados filtrados/visíveis no DataTable
   const tabela = $("#planilha").DataTable();
   const dadosVisiveis = tabela.rows({ search: 'applied' }).data().toArray();
-
   const headers = colunas;
   const rows = dadosVisiveis.map(r => colunas.map(c => r[c] || ""));
-
-  doc.autoTable({
-    head: [headers],
-    body: rows,
-    startY: 20,
-    styles: {
-      fontSize: 9,
-      cellPadding: 3,
-      halign: 'center',
-      valign: 'middle',
-      overflow: 'linebreak' // 🔥 evita quebra feia
-    },
-    columnStyles: {
-      0: { cellWidth: 25 }, // DATA
-      1: { cellWidth: 30 }, // CENTRAL
-      2: { cellWidth: 35 }, // CARGAS
-      3: { cellWidth: 50 }, // FORNECEDOR
-      4: { cellWidth: 40 }, // TIPO DE PRODUTO
-      5: { cellWidth: 60 }  // PRODUTO
-    }
-  });
-
+  doc.autoTable({ head: [headers], body: rows, startY: 20, styles: { fontSize: 9, cellPadding: 3, halign: 'center', valign: 'middle', overflow: 'linebreak' }, columnStyles: {0:{cellWidth:25},1:{cellWidth:30},2:{cellWidth:35},3:{cellWidth:50},4:{cellWidth:40},5:{cellWidth:60}}});
   const dataHoje = new Date().toLocaleDateString('pt-BR');
   doc.save(`agendamento_${dataHoje}.pdf`);
 }
 
+// Exportar Excel
 function exportarExcel(){
-  // Pega apenas os dados filtrados/visíveis no DataTable
   const tabela = $("#planilha").DataTable();
   const dadosVisiveis = tabela.rows({ search: 'applied' }).data().toArray();
-
   const headers = colunas;
-  const rows = dadosVisiveis.map(r => colunas.map(c => r[c] || ""));
+  const rows = dadosVisiveis.map(r => colunas.map(c => r[colunas.indexOf(c)] || r[c] || ""));
   const ws_data = [headers, ...rows];
-
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(ws_data);
-
-  // Ajusta largura das colunas no Excel
-  const larguraColunas = headers.map(() => ({ wch: 20 }));
-  ws['!cols'] = larguraColunas;
-
+  ws['!cols'] = headers.map(() => ({ wch: 20 }));
   XLSX.utils.book_append_sheet(wb, ws, "Agendamento");
   const dataHoje = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
   XLSX.writeFile(wb, `agendamento_${dataHoje}.xlsx`);

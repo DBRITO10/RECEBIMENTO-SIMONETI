@@ -19,7 +19,6 @@
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <!-- Export Libs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -29,223 +28,88 @@
   <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.dataTables.min.css">
 
   <style>
-    body {
-      background-color: #FFFFFF;
-      font-family: Arial, sans-serif;
-      color: #000000;
-      padding: 10px;
-      margin: 0;
-      box-sizing: border-box;
-    }
-
-    h1 {
-      margin-bottom: 16px;
-      background-color: #E6E6E6;
-      padding: 10px;
-      border-radius: 4px;
-      font-size: 6vw;
-      text-align: center;
-      color: #000000;
-    }
-    @media (min-width: 768px) {
-      h1 { font-size: 28px; text-align: left; }
-    }
-
-    table { 
-      width: 100%; 
-      font-size: 13px; 
-      border-collapse: collapse; 
-    }
-
-    thead tr th { 
-      background: #8B8989; 
-      color: #000000; 
-      padding: 8px; 
-      text-align: center; 
-      font-weight: bold; 
-      border: 1px solid #CCCCCC; 
-    }
-
+    body { background-color: #FFFFFF; font-family: Arial, sans-serif; color: #000; padding: 10px; margin: 0; box-sizing: border-box; }
+    h1 { margin-bottom: 16px; background-color: #E6E6E6; padding: 10px; border-radius: 4px; font-size: 6vw; text-align: center; color: #000; }
+    @media (min-width: 768px) { h1 { font-size: 28px; text-align: left; } }
+    table { width: 100%; font-size: 13px; border-collapse: collapse; }
+    thead tr th { background: #E6E6E6; color: #000; padding: 8px; text-align: center; font-weight: bold; border: 1px solid #CCC; }
     tbody tr:nth-child(even) { background-color: #F2F2F2; }
-    tbody tr:nth-child(odd) { background-color: #FFFFFF; }
-
-    td { 
-      padding: 8px 12px; 
-      border: 1px solid #CCCCCC; 
-      white-space: nowrap; 
-      text-align: center; 
-      max-width: 150px; 
-      overflow: hidden; 
-      text-overflow: ellipsis; 
-      color: #000000;
-    }
-
-    thead tr.filters th { 
-      background: #E6E6E6; 
-      padding: 4px; 
-    }
-
-    .filter-select { 
-      width: 100%; 
-      padding: 6px; 
-      font-size: 13px; 
-      background: #8B8989; 
-      border: 1px solid #CCCCCC; 
-      border-radius: 4px; 
-      color: #000000; 
-      text-align: center; 
-      appearance: auto; 
-    }
-
-    input.dataTables_filter input { 
-      color: #000000 !important; 
-      background: #E0F4FF !important; 
-      border-radius: 4px; 
-      border: 1px solid #CCCCCC; 
-      padding: 4px 8px; 
-      font-size: 14px; 
-      box-sizing: border-box; 
-    }
-
-    table.dataTable th, table.dataTable td { 
-      min-width: 120px; 
-      text-align: center; 
-    }
-
-    div.dataTables_wrapper { 
-      overflow-x: auto; 
-      position: relative; 
-    }
-
-    @media (max-width: 768px) { 
-      div.dataTables_wrapper { 
-        overflow-x: auto; 
-        -webkit-overflow-scrolling: touch; 
-      } 
-      table.dataTable { 
-        display: block; 
-        width: max-content; 
-      } 
-      .filter-select { font-size: 14px; } 
-      td, th { font-size: 12px; } 
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button { 
-      color: #CC0000 !important; 
-      background-color: #fff !important; 
-      border: 1px solid #CCCCCC !important;
-      border-radius: 4px; 
-      padding: 4px 8px; 
-      margin: 2px; 
-      font-weight: bold; 
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button:hover { 
-      background-color: #f1f1f1 !important; 
-      color: #000000 !important; 
-    }
-
-    #btnShare { 
-      background:#CC0000; 
-      color:#FFFFFF; 
-      padding:6px 12px; 
-      border:none; 
-      border-radius:6px; 
-      cursor:pointer; 
-      font-weight:bold; 
-      margin-left:10px; 
-    }
-
+    tbody tr:nth-child(odd) { background-color: #FFF; }
+    td { padding: 8px 12px; border: 1px solid #CCC; white-space: nowrap; text-align: center; max-width: 150px; overflow: hidden; text-overflow: ellipsis; color: #000; }
+    .filter-select { width: 100%; padding: 6px; font-size: 13px; background: #E0F4FF; border: 1px solid #CCC; border-radius: 4px; color: #000; text-align: center; appearance: auto; }
+    input.dataTables_filter input { color: #000 !important; background: #E0F4FF !important; border-radius: 4px; border: 1px solid #CCC; padding: 4px 8px; font-size: 14px; box-sizing: border-box; }
+    table.dataTable th, table.dataTable td { min-width: 120px; text-align: center; }
+    div.dataTables_wrapper { overflow-x: auto; position: relative; }
+    @media (max-width: 768px) { table.dataTable { display: block; width: max-content; } .filter-select { font-size: 14px; } td, th { font-size: 12px; } }
+    .dataTables_wrapper .dataTables_paginate .paginate_button { color: #CC0000 !important; background-color: #fff !important; border: 1px solid #CCC !important; border-radius: 4px; padding: 4px 8px; margin: 2px; font-weight: bold; }
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover { background-color: #f1f1f1 !important; color: #000 !important; }
+    #btnShare { background:#CC0000; color:#fff; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; margin-left:10px; }
     #btnShare:hover { background:#A80000; }
-
-    #shareMenu { 
-      display:none; 
-      position:absolute; 
-      background:#fff; 
-      border:1px solid #ccc; 
-      border-radius:6px; 
-      box-shadow:0 2px 8px rgba(0,0,0,0.2); 
-      z-index:3000; 
-    }
-
-    #shareMenu .share-option { 
-      padding:10px 14px; 
-      cursor:pointer; 
-      font-size:14px; 
-      background:#CC0000; 
-      color:#fff; 
-      border-radius:4px; 
-      margin:4px; 
-      text-align:center;
-    }
-
+    #shareMenu { display:none; position:absolute; background:#fff; border:1px solid #ccc; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.2); z-index:3000; }
+    #shareMenu .share-option { padding:10px 14px; cursor:pointer; font-size:14px; background:#CC0000; color:#fff; border-radius:4px; margin:4px; text-align:center; }
     #shareMenu .share-option:hover { background:#A80000; }
-
-    /* POPUP NOTA */
-    #notaOverlay, #cargaOverlay { 
-      display: none; 
-      position: fixed; 
-      top: 0; left: 0; 
-      width: 100%; height: 100%; 
-      background: rgba(0,0,0,0.6); 
-      z-index: 2000; 
-    }
-
-    #notaPopup, #cargaPopup { 
-      display: none; 
-      position: fixed; 
-      top: 50%; left: 50%; 
-      transform: translate(-50%, -50%); 
-      background: #fff; 
-      color: #000; 
-      border-radius: 10px; 
-      padding: 20px; 
-      max-width: 90%; 
-      max-height: 70%; 
-      overflow-y: auto; 
-      z-index: 2100; 
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
-    }
-
-    #notaPopup h2, #cargaPopup h2 { 
-      margin-top: 0; 
-      color: #CC0000; 
-    }
-
-    #notaPopup button, #cargaPopup button { 
-      margin-top: 12px; 
-      padding: 6px 14px; 
-      border: none; 
-      background: #CC0000; 
-      color: #fff; 
-      border-radius: 6px; 
-      cursor: pointer; 
-      font-weight: bold; 
-    }
-
-    #notaPopup button:hover, #cargaPopup button:hover { background: #A80000; }
+    #notaOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; }
+    #notaPopup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color: #000; border-radius: 10px; padding: 20px; max-width: 90%; max-height: 70%; overflow-y: auto; z-index: 2100; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+    #notaPopup h2 { margin-top: 0; color: #CC0000; }
+    #notaPopup button { margin-top: 12px; padding: 6px 14px; border: none; background: #CC0000; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    #notaPopup button:hover { background: #A80000; }
   </style>
 </head>
 <body>
+<script>
+  if (localStorage.getItem("isLoggedIn") !== "true") {
+    window.location.href = "login.html";
+  }
+</script>
+<div id="userBar" style="
+  background:#E6E6E6; 
+  padding:10px; 
+  display:flex; 
+  justify-content:space-between; 
+  align-items:center; 
+  border-radius:6px; 
+  margin-bottom:12px;
+">
+  <span id="welcomeUser" style="font-weight:bold; color:#333;"></span>
+  <button onclick="logout()" style="
+    background:#CC0000;
+    color:white;
+    border:none;
+    padding:6px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
+  ">Sair</button>
+</div>
+<script>
+  const username = localStorage.getItem("username") || "Usuário";
+  document.addEventListener("DOMContentLoaded", ()=>{
+    document.getElementById("welcomeUser").textContent = "Bem-vindo, " + username;
+  });
+  function logout(){
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("username");
+    window.location.href = "login.html";
+  }
+</script>
+
 <h1>RECEBIMENTO - MÓVEIS SIMONETTI</h1>
 <table id="planilha" class="display nowrap">
-<thead><tr class="headers"></tr><tr class="filters"></tr></thead>
-<tbody></tbody>
+  <thead>
+    <tr class="headers"></tr>
+    <tr class="filters"></tr>
+  </thead>
+  <tbody></tbody>
+  <tfoot>
+    <tr><th colspan="8" style="text-align:right; font-weight:bold;" id="totalCargas">Total de Cargas: 0</th></tr>
+  </tfoot>
 </table>
 
-<!-- POPUPS -->
 <div id="notaOverlay"></div>
 <div id="notaPopup">
-  <h2>Nota Completa</h2>
+  <h2>Detalhes</h2>
   <div id="notaConteudo"></div>
   <button id="fecharPopup">Fechar</button>
-</div>
-
-<div id="cargaOverlay"></div>
-<div id="cargaPopup">
-  <h2>Carga/Transporte Completo</h2>
-  <div id="cargaConteudo"></div>
-  <button id="fecharCargaPopup">Fechar</button>
 </div>
 
 <script>
@@ -254,140 +118,139 @@ const gid = "0";
 const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`;
 const colunasDesejadas = ["SENHA","DATA","CENTRAL","CARGA/TRANSPORTE","NOTAS","STATUS DA CARGA","FORNECEDOR","TIPO DE PRODUTO"];
 
-Papa.parse(csvUrl, { download: true, header: true,
-  complete: function (results) {
-    const data = results.data;
-    if (!data.length || Object.keys(data[0]).length === 0) { alert("Falha ao carregar dados."); return; }
+Papa.parse(csvUrl, { download: true, header: true, complete: function (results) {
+  const data = results.data;
+  if(!data.length || Object.keys(data[0]).length===0){ alert("Falha ao carregar dados."); return; }
 
-    results.meta.fields = results.meta.fields.map(f => f.trim());
-    data.forEach(row => { Object.keys(row).forEach(k => { if(k!==k.trim()){ row[k.trim()] = row[k]; delete row[k]; } }); });
-    data.forEach(row => { colunasDesejadas.forEach(col => { if(row[col]) row[col]=row[col].trim(); }); });
+  results.meta.fields = results.meta.fields.map(f=>f.trim());
+  data.forEach(row=>{ Object.keys(row).forEach(k=>{ if(k!==k.trim()){ row[k.trim()]=row[k]; delete row[k]; } }); });
+  data.forEach(row=>{ colunasDesejadas.forEach(col=>{ if(row[col]) row[col]=row[col].trim(); }); });
 
-    const headerRow = document.querySelector("#planilha thead tr.headers");
-    const filterRow = document.querySelector("#planilha thead tr.filters");
-    const tableBody = document.querySelector("#planilha tbody");
+  const headerRow = document.querySelector("#planilha thead tr.headers");
+  const filterRow = document.querySelector("#planilha thead tr.filters");
+  const tableBody = document.querySelector("#planilha tbody");
 
-    colunasDesejadas.forEach(col => { 
-      headerRow.innerHTML += `<th>${col}</th>`; 
-      filterRow.innerHTML += `<th><select class="filter-select"><option value="">Filtrar</option></select></th>`; 
+  colunasDesejadas.forEach(col=>{
+    headerRow.innerHTML += `<th>${col}</th>`;
+    filterRow.innerHTML += `<th><select class="filter-select"><option value="">Filtrar / Limpar Filtro</option></select></th>`;
+  });
+
+  data.forEach(row=>{
+    let rowHtml = "<tr>";
+    colunasDesejadas.forEach(col=>{
+      let valor = row[col]||"";
+      if(col==="NOTAS" && valor==="") valor="Sem nota";
+      if(col==="NOTAS" || col==="CARGA/TRANSPORTE") rowHtml += `<td class="popup-cell" data-col="${col}" data-text="${valor}">${valor}</td>`;
+      else rowHtml += `<td>${valor}</td>`;
     });
+    rowHtml += "</tr>";
+    tableBody.innerHTML += rowHtml;
+  });
 
-    data.forEach(row => {
-      let rowHtml = "<tr>";
-      colunasDesejadas.forEach(col => {
-        let valor = row[col] || "";
-        if(col==="NOTAS" && valor==="") valor="Sem nota";
+  const table = $("#planilha").DataTable({
+    paging:false, searching:true, info:false, scrollX:true, autoWidth:false,
+    fixedHeader:{header:true, headerOffset:0},
+    stateSave:true,
+    language:{search:"Buscar:", zeroRecords:"Nenhum registro encontrado", infoEmpty:"Nenhum dado disponível"}
+  });
 
-        if(col==="NOTAS") {
-          rowHtml += `<td class="nota-cell" data-nota="${valor}">${valor}</td>`;
-        } else if(col==="CARGA/TRANSPORTE") {
-          rowHtml += `<td class="carga-cell" data-carga="${valor}">${valor}</td>`;
-        } else {
-          rowHtml += `<td>${valor}</td>`;
-        }
-      });
-      rowHtml+="</tr>"; 
-      tableBody.innerHTML += rowHtml;
-    });
+  // Atualiza total de cargas
+  function atualizarTotalCargas(){
+    const total = table.rows({search:'applied'}).data().length;
+    document.getElementById("totalCargas").textContent = "Total de Cargas: "+total;
+  }
+  table.on('draw', atualizarTotalCargas);
+  atualizarTotalCargas();
 
-    const table = $("#planilha").DataTable({
-      paging: false, searching: true, info: false, scrollX: true, autoWidth: false,
-      fixedHeader: { header: true, headerOffset: 0 },
-      stateSave: true,
-      language: { search: "Buscar:", zeroRecords: "Nenhum registro encontrado", infoEmpty: "Nenhum dado disponível" }
-    });
-
-    table.columns().every(function () {
+  // Função de filtros dependentes
+  function atualizarFiltros(){
+    table.columns().every(function(){
       const column = this;
       const select = $(".filters th").eq(column.index()).find("select");
+      let dataFiltrada = table.rows({search:'applied'}).data().toArray();
+      let valores = [...new Set(dataFiltrada.map(row=>row[column.index()]))].filter(v=>v);
+      valores.sort();
+      select.html('<option value="">Filtrar / Limpar Filtro</option>');
+      valores.forEach(v=>select.append(`<option value="${v}">${v}</option>`));
+    });
 
-      column.data().unique().sort().each(d => { if(d) select.append('<option value="'+d+'">'+d+'</option>'); });
-
+    // Reaplica valores salvos do localStorage
+    table.columns().every(function(){
+      const column = this;
+      const select = $(".filters th").eq(column.index()).find("select");
       const savedVal = localStorage.getItem('filtroColuna'+column.index());
       if(savedVal){
         select.val(savedVal);
         const valRegex = $.fn.dataTable.util.escapeRegex(savedVal);
         column.search(valRegex ? '^'+valRegex+'$' : '', true, false).draw();
       }
-
-      select.on("change", function(){
-        const val = $(this).val();
-        localStorage.setItem('filtroColuna'+column.index(), val);
-        const valRegex = $.fn.dataTable.util.escapeRegex(val);
-        column.search(valRegex ? '^'+valRegex+'$' : '', true, false).draw();
-      });
     });
-
-    $(".dataTables_wrapper").css("position","relative");
-
-    $("#planilha_filter").append(`
-      <button id="btnShare">📤 Compartilhar</button>
-      <div id="shareMenu">
-        <div class="share-option" data-type="pdf">📄 Exportar PDF</div>
-        <div class="share-option" data-type="excel">📊 Exportar Excel</div>
-      </div>
-    `);
-
-    const shareBtn = document.getElementById("btnShare"); 
-    const shareMenu = document.getElementById("shareMenu");
-
-    shareBtn.addEventListener("click", () => {
-      shareMenu.style.left = (shareBtn.offsetLeft)+"px";
-      shareMenu.style.top = (shareBtn.offsetTop + shareBtn.offsetHeight + 5)+"px";
-      shareMenu.style.display = "block";
-    });
-
-    document.addEventListener("click", (e) => { 
-      if(!shareBtn.contains(e.target) && !shareMenu.contains(e.target)) shareMenu.style.display="none";
-    });
-
-    $(document).on("click",".share-option", function(){
-      const type = $(this).data("type");
-      if(type==="pdf") exportPDF(table);
-      if(type==="excel") exportExcel(table);
-      shareMenu.style.display="none";
-    });
-
   }
-});
 
-/* POPUP NOTA */
-$(document).on("click", ".nota-cell", function() { 
-  const nota = $(this).data("nota"); 
-  $("#notaConteudo").text(nota); 
-  $("#notaOverlay, #notaPopup").fadeIn(200); 
-});
-$("#fecharPopup, #notaOverlay").on("click", function() { 
-  $("#notaOverlay, #notaPopup").fadeOut(200); 
-});
+  // Configura eventos de filtro
+  table.columns().every(function(){
+    const column = this;
+    const select = $(".filters th").eq(column.index()).find("select");
+    select.on("change",function(){
+      const val = $(this).val();
+      localStorage.setItem('filtroColuna'+column.index(), val);
+      const valRegex = $.fn.dataTable.util.escapeRegex(val);
+      column.search(valRegex ? '^'+valRegex+'$' : '', true, false).draw();
+      atualizarFiltros();
+      atualizarTotalCargas();
+    });
+  });
+  atualizarFiltros();
 
-/* POPUP CARGA */
-$(document).on("click", ".carga-cell", function() { 
-  const carga = $(this).data("carga"); 
-  $("#cargaConteudo").text(carga); 
-  $("#cargaOverlay, #cargaPopup").fadeIn(200); 
-});
-$("#fecharCargaPopup, #cargaOverlay").on("click", function() { 
-  $("#cargaOverlay, #cargaPopup").fadeOut(200); 
-});
+  $(".dataTables_wrapper").css("position","relative");
+  $("#planilha_filter").append(`
+    <button id="btnShare">📤 Compartilhar</button>
+    <div id="shareMenu">
+      <div class="share-option" data-type="pdf">📄 Exportar PDF</div>
+      <div class="share-option" data-type="excel">📊 Exportar Excel</div>
+    </div>
+  `);
 
+  const shareBtn = document.getElementById("btnShare"); 
+  const shareMenu = document.getElementById("shareMenu");
+  shareBtn.addEventListener("click",()=>{ shareMenu.style.left=(shareBtn.offsetLeft)+"px"; shareMenu.style.top=(shareBtn.offsetTop + shareBtn.offsetHeight + 5)+"px"; shareMenu.style.display="block"; });
+  document.addEventListener("click",(e)=>{ if(!shareBtn.contains(e.target) && !shareMenu.contains(e.target)) shareMenu.style.display="none"; });
+  $(document).on("click",".share-option",function(){
+    const type = $(this).data("type");
+    if(type==="pdf") exportPDF(table);
+    if(type==="excel") exportExcel(table);
+    shareMenu.style.display="none";
+  });
+
+}});
+
+// Popup para NOTAS e CARGA/TRANSPORTE
+$(document).on("click",".popup-cell",function(){
+  const text = $(this).data("text");
+  const col = $(this).data("col");
+  $("#notaPopup h2").text(col);
+  $("#notaConteudo").text(text);
+  $("#notaOverlay, #notaPopup").fadeIn(200);
+});
+$("#fecharPopup, #notaOverlay").on("click",function(){ $("#notaOverlay, #notaPopup").fadeOut(200); });
+
+// Export PDF/Excel
 function exportPDF(table){
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: "landscape" });
+  const doc = new jsPDF({orientation:"landscape"});
   const headers = colunasDesejadas;
-  const data = table.rows({ search:"applied" }).data().toArray();
-  doc.autoTable({ head:[headers], body:data, styles:{fontSize:8, cellPadding:2}, columnStyles:{4:{cellWidth:60, overflow:"linebreak"}}});
+  const data = table.rows({search:"applied"}).data().toArray();
+  doc.autoTable({head:[headers], body:data, styles:{fontSize:8, cellPadding:2}, columnStyles:{4:{cellWidth:60, overflow:"linebreak"}}});
   doc.save("recebimento.pdf");
 }
-
 function exportExcel(table){
   const headers = colunasDesejadas;
-  const data = table.rows({ search:"applied" }).data().toArray();
+  const data = table.rows({search:"applied"}).data().toArray();
   const ws_data = [headers];
   data.forEach(row=>ws_data.push([...row]));
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(ws_data);
-  XLSX.utils.book_append_sheet(wb, ws,"Recebimento");
+  XLSX.utils.book_append_sheet(wb,ws,"Recebimento");
   XLSX.writeFile(wb,"recebimento.xlsx");
 }
 </script>

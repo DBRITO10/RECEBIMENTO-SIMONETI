@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Móveis Simonetti</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fff5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-box {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 300px;
+    }
+    h2 { color: #b71c1c; margin-bottom: 20px; }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #d32f2f;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover { background: #a80000; }
+    .error { color: red; font-size: 14px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>Login</h2>
+    <input type="text" id="user" placeholder="Usuário">
+    <input type="password" id="pass" placeholder="Senha">
+    <button onclick="login()">Entrar</button>
+    <div class="error" id="errorMsg"></div>
+  </div>
+
+  <script>
+    function login() {
+      const user = document.getElementById("user").value;
+      const pass = document.getElementById("pass").value;
+
+      // Usuários e senhas pré-definidos (adicione mais aqui)
+      const credenciais = {
+        "DBRITO": "1234",
+        "JVIANA": "1234"
+      };
+
+      if (credenciais[user] && credenciais[user] === pass) {
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("username", user);
+        window.location.href = "index.html";
+      } else {
+        document.getElementById("errorMsg").textContent = "Usuário ou senha inválidos!";
+      }
+    }
+  </script>
+</body>
+</html>
