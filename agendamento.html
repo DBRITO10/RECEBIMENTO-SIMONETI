@@ -8,6 +8,7 @@
   <!-- Bibliotecas -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/scroller/2.2.5/js/dataTables.scroller.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -15,6 +16,7 @@
 
   <!-- CSS DataTables -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/scroller/2.2.5/css/scroller.dataTables.min.css"/>
 
   <style>
     :root {
@@ -25,126 +27,30 @@
       --cor-linha-impar: #fff5f5;
       --cor-filtro: #ffcccc;
     }
-
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: var(--cor-fundo-dashboard);
-      color: #333;
-      padding: 10px;
-      margin: 0;
-    }
-
+    body { font-family: 'Segoe UI', sans-serif; background-color: var(--cor-fundo-dashboard); color: #333; padding: 10px; margin: 0; }
     header { text-align: center; margin-bottom: 20px; }
-
-    h1 {
-      color: #cc0000;
-      font-size: 6vw;
-      margin: 10px 0 20px 0;
-      font-weight: bold;
+    h1 { color: #cc0000; font-size: 6vw; margin: 10px 0 20px 0; font-weight: bold; }
+    @media (min-width: 768px) { h1 { font-size: 28px; } }
+    .table-container { overflow-x: auto; border: 1px solid #ff9999; border-radius: 6px; margin-top: 10px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    table { 
+      border-collapse: collapse; 
+      font-size: 13px; 
+      width: 100%; 
+      min-width: 800px; 
+      table-layout: fixed; /* 🔥 Garante alinhamento */
     }
-
-    @media (min-width: 768px) {
-      h1 { font-size: 28px; }
-    }
-
-    .table-container {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      border: 1px solid #ff9999;
-      border-radius: 6px;
-      margin-top: 10px;
-      background: #fff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    table {
-      border-collapse: collapse;
-      font-size: 13px;
-      width: 100%;
-      min-width: 800px;
-    }
-
-    thead tr th {
-      background: var(--cor-cabecalho);
-      color: var(--cor-texto-cabecalho);
-      padding: 8px 12px;
-      text-align: center;
-      font-weight: bold;
-      white-space: nowrap;
-    }
-
+    thead tr th { background: var(--cor-cabecalho); color: var(--cor-texto-cabecalho); padding: 8px 12px; text-align: center; font-weight: bold; white-space: nowrap; }
     tbody tr:nth-child(even) { background-color: var(--cor-linha-par); }
     tbody tr:nth-child(odd) { background-color: var(--cor-linha-impar); }
-
-    td, th {
-      border: 1px solid #ddd;
-      box-shadow: inset 0 0 2px rgba(0,0,0,0.05);
-    }
-
-    td {
-      padding: 8px 12px;
-      border-bottom: 1px solid #eee;
-      white-space: nowrap;
-      text-align: center;
-    }
-
-    .filter-select {
-      width: 100%;
-      min-width: 70px;
-      padding: 6px 8px;
-      font-size: 13px;
-      background: var(--cor-filtro);
-      border: none;
-      border-radius: 4px;
-      color: #333;
-      text-align: center;
-      box-sizing: border-box;
-    }
-
-    .menu {
-      position: relative;
-      display: inline-block;
-      margin-bottom: 10px;
-    }
-
-    .menu button {
-      background: #cc0000;
-      color: #fff;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background 0.3s;
-    }
-
-    .menu button:hover {
-      background: #a30000;
-    }
-
-    .menu-content {
-      display: none;
-      position: absolute;
-      background: #fff;
-      color: #333;
-      box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
-      z-index: 1;
-      min-width: 150px;
-      border-radius: 4px;
-    }
-
-    .menu-content a {
-      display: block;
-      padding: 10px;
-      text-decoration: none;
-      color: #333;
-      font-size: 14px;
-    }
-
-    .menu-content a:hover {
-      background: #fbeaea;
-    }
-
+    td, th { border: 1px solid #ddd; box-shadow: inset 0 0 2px rgba(0,0,0,0.05); overflow: hidden; text-overflow: ellipsis; }
+    td { padding: 8px 12px; border-bottom: 1px solid #eee; white-space: nowrap; text-align: center; }
+    .filter-select { width: 100%; min-width: 70px; padding: 6px 8px; font-size: 13px; background: var(--cor-filtro); border: none; border-radius: 4px; color: #333; text-align: center; box-sizing: border-box; }
+    .menu { position: relative; display: inline-block; margin-bottom: 10px; }
+    .menu button { background: #cc0000; color: #fff; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 14px; transition: background 0.3s; }
+    .menu button:hover { background: #a30000; }
+    .menu-content { display: none; position: absolute; background: #fff; color: #333; box-shadow: 0px 4px 8px rgba(0,0,0,0.1); z-index: 1; min-width: 150px; border-radius: 4px; }
+    .menu-content a { display: block; padding: 10px; text-decoration: none; color: #333; font-size: 14px; }
+    .menu-content a:hover { background: #fbeaea; }
     .menu:hover .menu-content { display: block; }
   </style>
 </head>
@@ -166,8 +72,7 @@
 <div class="table-container">
   <table id="planilha" class="display nowrap">
     <thead>
-      <tr class="headers"></tr>
-      <tr class="filters"></tr>
+      <tr></tr>
     </thead>
     <tbody></tbody>
   </table>
@@ -177,14 +82,12 @@
 const sheetID = "1Ore02M4GARvE6hldNDZmiVNDrABb4dgaZO7wlMY-fjs";
 const gidPinheiros = "0";
 const gidSerra = "353068485";
-
 const urls = [
   `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gidPinheiros}`,
   `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gidSerra}`
 ];
 
 let allData = [];
-// colunas fixas solicitadas
 let colunas = ["DATA", "CENTRAL", "CARGAS", "FORNECEDOR", "TIPO DE PRODUTO", "PRODUTO"];
 
 function carregarDados(url, callback) {
@@ -192,7 +95,10 @@ function carregarDados(url, callback) {
     download:true, 
     header:true, 
     complete:function(results){
-      allData = allData.concat(results.data);
+      const dadosFiltrados = results.data.filter(row => {
+        return colunas.some(c => row[c] && row[c].trim() !== "");
+      });
+      allData = allData.concat(dadosFiltrados);
       callback();
     }
   });
@@ -201,101 +107,118 @@ function carregarDados(url, callback) {
 function inicializarTabela() {
   if(allData.length===0) return;
 
-  const headerRow = document.querySelector("#planilha thead tr.headers");
-  const filterRow = document.querySelector("#planilha thead tr.filters");
-  const tableBody = document.querySelector("#planilha tbody");
-
-  // monta cabeçalho e filtros fixos
-  colunas.forEach(col=>{
-    headerRow.innerHTML += `<th>${col}</th>`;
-    filterRow.innerHTML += `<th><select class="filter-select"><option value="">Filtrar</option></select></th>`;
-  });
-
-  // monta corpo da tabela apenas com as colunas desejadas
-  allData.forEach(row=>{
-    let rowHtml = "<tr>";
-    colunas.forEach(col=>{
-      rowHtml += `<td>${row[col] || ""}</td>`;
-    });
-    rowHtml += "</tr>";
-    tableBody.innerHTML += rowHtml;
-  });
-
-  // ativa DataTable
-  const table = $("#planilha").DataTable({
+  $("#planilha").DataTable({
+    data: allData,
+    columns: colunas.map(c => ({ data: c })),
+    deferRender: true,
+    scrollX: true,
+    scroller: true,
     paging: true,
     pageLength: 50,
-    lengthMenu: [25, 50, 100, 200],
+    lengthMenu: [25,50,100,200],
     searching: true,
-    info: true,
-    scrollX: true,
     autoWidth: false,
     language: { 
-      search:"Buscar:", 
-      zeroRecords:"Nenhum registro encontrado", 
-      info:"Mostrando _START_ até _END_ de _TOTAL_ registros", 
-      infoEmpty:"Nenhum dado disponível", 
-      lengthMenu: "Mostrar _MENU_ registros por página"
+      decimal: ",",
+      thousands: ".",
+      search: "🔍 Buscar:",
+      zeroRecords: "Nenhum registro encontrado",
+      info: "Mostrando de _START_ até _END_ de _TOTAL_ registros",
+      infoEmpty: "Mostrando 0 até 0 de 0 registros",
+      infoFiltered: "(filtrado de _MAX_ registros no total)",
+      lengthMenu: "Mostrar _MENU_ registros por página",
+      loadingRecords: "Carregando...",
+      processing: "Processando...",
+      paginate: { first: "Primeiro", previous: "Anterior", next: "Próximo", last: "Último" }
+    },
+    initComplete: function(){
+      this.api().columns().every(function(i){
+        const column = this;
+        const title = colunas[i];
+        const $header = $(column.header()).empty();
+        $header.append(`
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <span style="font-size:12px;font-weight:bold;color:white;">${title}</span>
+            <select class="filter-select">
+              <option value="">Filtrar</option>
+            </select>
+          </div>
+        `);
+        const select = $header.find("select");
+
+        select.on('change', function(){
+          const val = $.fn.dataTable.util.escapeRegex($(this).val());
+          column.search(val ? '^'+val+'$' : '', true, false).draw();
+        });
+
+        let dados = column.data().unique().toArray().filter(Boolean);
+        if(colunas[i]==="DATA"){
+          dados.sort((a,b)=>{ 
+            const toTime = v=>{ const [d,m,y]=v.split("/").map(Number); return new Date(y,m-1,d).getTime(); }
+            return toTime(a) - toTime(b);
+          });
+        } else { dados.sort(); }
+        dados.forEach(d=>select.append(`<option value="${d}">${d}</option>`));
+      });
     }
-  });
-
-  // filtros dinâmicos
-  table.columns().every(function(i){
-    const column = this;
-    const select = $(filterRow).find("select").eq(i);
-
-    column.data().unique().sort().each(d=>{ if(d) select.append(`<option value="${d}">${d}</option>`); });
-
-    const savedVal = localStorage.getItem('filtroColuna'+i);
-    if(savedVal){
-      select.val(savedVal);
-      const valRegex = $.fn.dataTable.util.escapeRegex(savedVal);
-      column.search(valRegex ? '^'+valRegex+'$' : '', true, false).draw();
-    }
-
-    select.on("change", function(){
-      const val = $(this).val();
-      localStorage.setItem('filtroColuna'+i, val);
-      const valRegex = $.fn.dataTable.util.escapeRegex(val);
-      column.search(valRegex ? '^'+valRegex+'$' : '', true, false).draw();
-    });
   });
 }
 
-// carrega as abas PINHEIROS e SERRA
 carregarDados(urls[0], function(){ carregarDados(urls[1], inicializarTabela); });
 
-// exportação PDF
 function exportarPDF(){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('landscape');
-  const headers = [];
-  document.querySelectorAll("#planilha thead tr.headers th").forEach(th=>headers.push(th.innerText));
-  const rows = [];
-  document.querySelectorAll("#planilha tbody tr").forEach(tr=>{
-    const row = [];
-    tr.querySelectorAll("td").forEach(td=>row.push(td.innerText));
-    rows.push(row);
+
+  // Pega apenas os dados filtrados/visíveis no DataTable
+  const tabela = $("#planilha").DataTable();
+  const dadosVisiveis = tabela.rows({ search: 'applied' }).data().toArray();
+
+  const headers = colunas;
+  const rows = dadosVisiveis.map(r => colunas.map(c => r[c] || ""));
+
+  doc.autoTable({
+    head: [headers],
+    body: rows,
+    startY: 20,
+    styles: {
+      fontSize: 9,
+      cellPadding: 3,
+      halign: 'center',
+      valign: 'middle',
+      overflow: 'linebreak' // 🔥 evita quebra feia
+    },
+    columnStyles: {
+      0: { cellWidth: 25 }, // DATA
+      1: { cellWidth: 30 }, // CENTRAL
+      2: { cellWidth: 35 }, // CARGAS
+      3: { cellWidth: 50 }, // FORNECEDOR
+      4: { cellWidth: 40 }, // TIPO DE PRODUTO
+      5: { cellWidth: 60 }  // PRODUTO
+    }
   });
-  doc.autoTable({ head:[headers], body:rows, startY:20, styles:{fontSize:9, cellPadding:3, halign:'center', valign:'middle'} });
+
   const dataHoje = new Date().toLocaleDateString('pt-BR');
   doc.save(`agendamento_${dataHoje}.pdf`);
 }
 
-// exportação Excel
 function exportarExcel(){
-  const headers = [];
-  document.querySelectorAll("#planilha thead tr.headers th").forEach(th=>headers.push(th.innerText));
-  const rows = [];
-  document.querySelectorAll("#planilha tbody tr").forEach(tr=>{
-    const row = [];
-    tr.querySelectorAll("td").forEach(td=>row.push(td.innerText));
-    rows.push(row);
-  });
+  // Pega apenas os dados filtrados/visíveis no DataTable
+  const tabela = $("#planilha").DataTable();
+  const dadosVisiveis = tabela.rows({ search: 'applied' }).data().toArray();
+
+  const headers = colunas;
+  const rows = dadosVisiveis.map(r => colunas.map(c => r[c] || ""));
   const ws_data = [headers, ...rows];
+
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(ws_data);
-  XLSX.utils.book_append_sheet(wb, ws,"Agendamento");
+
+  // Ajusta largura das colunas no Excel
+  const larguraColunas = headers.map(() => ({ wch: 20 }));
+  ws['!cols'] = larguraColunas;
+
+  XLSX.utils.book_append_sheet(wb, ws, "Agendamento");
   const dataHoje = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
   XLSX.writeFile(wb, `agendamento_${dataHoje}.xlsx`);
 }
