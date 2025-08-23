@@ -22,14 +22,7 @@
       text-align: center;
     }
     h1 { margin: 20px 0; color: #d32f2f; }
-
-    .links {
-      display: flex;
-      gap: 20px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
+    .links { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
     a {
       display: inline-block;
       padding: 16px 28px;
@@ -45,20 +38,12 @@
       border: 1px solid #f28b82;
     }
     a:hover { background: #fce8e6; }
-
     .logo {
       max-width: 220px;
       margin-bottom: 10px;
       filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.3));
     }
-
-    @media (max-width: 600px) {
-      .links {
-        flex-direction: column;
-        gap: 12px;
-      }
-    }
-
+    @media (max-width: 600px) { .links { flex-direction: column; gap: 12px; } }
     #installBanner {
       margin-top: 20px;
       background: #d32f2f;
@@ -71,35 +56,84 @@
   </style>
 </head>
 <body>
-  <img src="icon-512.png" alt="Móveis Simonetti" class="logo">
 
-  <h1>Bem-vindo! Escolha como deseja continuar:</h1>
-  
-  <div class="links">
-    <a href="agendamento.html">📅 AGENDAMENTO</a>
-    <a href="recebimento.html">🚚 AJUSTE</a>
-  </div>
+<div id="userBar" style="
+  background:#E6E6E6; 
+  padding:10px; 
+  display:flex; 
+  justify-content:space-between; 
+  align-items:center; 
+  border-radius:6px; 
+  margin-bottom:12px;
+">
+  <span id="welcomeUser" style="font-weight:bold; color:#333;"></span>
+  <button onclick="logout()" style="
+    background:#CC0000;
+    color:white;
+    border:none;
+    padding:6px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
+  ">Sair</button>
+</div>
 
-  <div id="installBanner">📲 Instalar App</div>
+<img src="icon-512.png" alt="Móveis Simonetti" class="logo">
+<h1>Bem-vindo! Escolha como deseja continuar:</h1>
+<div class="links">
+  <a href="agendamento.html">📅 AGENDAMENTO</a>
+  <a href="recebimento.html">🚚 AJUSTE</a>
+</div>
+<div id="installBanner">📲 Instalar App</div>
 
-  <script defer>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js");
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyD-DrDN3zC6zFwQ0QD3s_UhI4qu92x87aU",
+    authDomain: "recebimeno.firebaseapp.com",
+    projectId: "recebimeno",
+    storageBucket: "recebimeno.firebasestorage.app",
+    messagingSenderId: "961986236320",
+    appId: "1:961986236320:web:a66929e4f82b35a5b95ec5"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+      window.location.href = "login.html";
+    } else {
+      const doc = await db.collection("users").doc(user.uid).get();
+      const name = doc.exists ? doc.data().username : user.email;
+      document.getElementById("welcomeUser").textContent = "Bem-vindo, " + name;
     }
+  });
 
-    let deferredPrompt;
-    const installBanner = document.getElementById("installBanner");
+  async function logout() {
+    await auth.signOut();
+    window.location.href = "login.html";
+  }
+</script>
 
-    window.addEventListener("beforeinstallprompt", (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      installBanner.style.display = "block";
-    });
-
-    installBanner.addEventListener("click", () => {
-      installBanner.style.display = "none";
-      deferredPrompt.prompt();
-    });
-  </script>
+<script defer>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js");
+  }
+  let deferredPrompt;
+  const installBanner = document.getElementById("installBanner");
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBanner.style.display = "block";
+  });
+  installBanner.addEventListener("click", () => {
+    installBanner.style.display = "none";
+    deferredPrompt.prompt();
+  });
+</script>
 </body>
 </html>
