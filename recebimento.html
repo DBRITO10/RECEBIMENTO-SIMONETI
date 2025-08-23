@@ -181,22 +181,20 @@
 
     #shareMenu .share-option:hover { background:#A80000; }
 
-    #notaOverlay { 
+    /* POPUP NOTA */
+    #notaOverlay, #cargaOverlay { 
       display: none; 
       position: fixed; 
-      top: 0; 
-      left: 0; 
-      width: 100%; 
-      height: 100%; 
+      top: 0; left: 0; 
+      width: 100%; height: 100%; 
       background: rgba(0,0,0,0.6); 
       z-index: 2000; 
     }
 
-    #notaPopup { 
+    #notaPopup, #cargaPopup { 
       display: none; 
       position: fixed; 
-      top: 50%; 
-      left: 50%; 
+      top: 50%; left: 50%; 
       transform: translate(-50%, -50%); 
       background: #fff; 
       color: #000; 
@@ -209,12 +207,12 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
     }
 
-    #notaPopup h2 { 
+    #notaPopup h2, #cargaPopup h2 { 
       margin-top: 0; 
       color: #CC0000; 
     }
 
-    #notaPopup button { 
+    #notaPopup button, #cargaPopup button { 
       margin-top: 12px; 
       padding: 6px 14px; 
       border: none; 
@@ -225,7 +223,7 @@
       font-weight: bold; 
     }
 
-    #notaPopup button:hover { background: #A80000; }
+    #notaPopup button:hover, #cargaPopup button:hover { background: #A80000; }
   </style>
 </head>
 <body>
@@ -235,11 +233,19 @@
 <tbody></tbody>
 </table>
 
+<!-- POPUPS -->
 <div id="notaOverlay"></div>
 <div id="notaPopup">
   <h2>Nota Completa</h2>
   <div id="notaConteudo"></div>
   <button id="fecharPopup">Fechar</button>
+</div>
+
+<div id="cargaOverlay"></div>
+<div id="cargaPopup">
+  <h2>Carga/Transporte Completo</h2>
+  <div id="cargaConteudo"></div>
+  <button id="fecharCargaPopup">Fechar</button>
 </div>
 
 <script>
@@ -271,8 +277,14 @@ Papa.parse(csvUrl, { download: true, header: true,
       colunasDesejadas.forEach(col => {
         let valor = row[col] || "";
         if(col==="NOTAS" && valor==="") valor="Sem nota";
-        if(col==="NOTAS") rowHtml += `<td class="nota-cell" data-nota="${valor}">${valor}</td>`;
-        else rowHtml += `<td>${valor}</td>`;
+
+        if(col==="NOTAS") {
+          rowHtml += `<td class="nota-cell" data-nota="${valor}">${valor}</td>`;
+        } else if(col==="CARGA/TRANSPORTE") {
+          rowHtml += `<td class="carga-cell" data-carga="${valor}">${valor}</td>`;
+        } else {
+          rowHtml += `<td>${valor}</td>`;
+        }
       });
       rowHtml+="</tr>"; 
       tableBody.innerHTML += rowHtml;
@@ -339,6 +351,7 @@ Papa.parse(csvUrl, { download: true, header: true,
   }
 });
 
+/* POPUP NOTA */
 $(document).on("click", ".nota-cell", function() { 
   const nota = $(this).data("nota"); 
   $("#notaConteudo").text(nota); 
@@ -346,6 +359,16 @@ $(document).on("click", ".nota-cell", function() {
 });
 $("#fecharPopup, #notaOverlay").on("click", function() { 
   $("#notaOverlay, #notaPopup").fadeOut(200); 
+});
+
+/* POPUP CARGA */
+$(document).on("click", ".carga-cell", function() { 
+  const carga = $(this).data("carga"); 
+  $("#cargaConteudo").text(carga); 
+  $("#cargaOverlay, #cargaPopup").fadeIn(200); 
+});
+$("#fecharCargaPopup, #cargaOverlay").on("click", function() { 
+  $("#cargaOverlay, #cargaPopup").fadeOut(200); 
 });
 
 function exportPDF(table){
