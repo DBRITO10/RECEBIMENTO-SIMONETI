@@ -1,15 +1,18 @@
-const CACHE_NAME = "simonetti-v" + new Date().getTime();
+const CACHE_NAME = "simonetti-" + Date.now();
 const urlsToCache = [
   "./",
   "./index.html",
   "./agendamento.html",
   "./recebimento.html",
+  "./login.html",
+  "./offline.html",
   "./manifest.json",
   "./icon-192.png",
   "./icon-512.png",
   "./favicon.ico"
 ];
 
+// Instala e guarda os arquivos
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
@@ -17,26 +20,28 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
+// Ativa e apaga todos os caches antigos
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+      Promise.all(keys.map((k) => caches.delete(k)))
     )
   );
   self.clients.claim();
 });
 
+// Intercepta todas as requisições
 self.addEventListener("fetch", (event) => {
-  const url = new URL(event.request.url);
-
-  if (url.hostname.includes("google") || url.hostname.includes("cdn")) {
+  // Se for uma navegação (abrir páginas HTML)
+  if (event.request.mode === "navigate" || event.request.destination === "document") {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
+      fetch(event.request).catch(() => caches.match("./offline.html"))
     );
     return;
   }
 
+  // Para recursos (css, js, imagens etc.)
   event.respondWith(
-    caches.match(event.request).then((response) => response || fetch(event.request))
+    fetch(event.request).catch(() => caches.match(event.request))
   );
 });

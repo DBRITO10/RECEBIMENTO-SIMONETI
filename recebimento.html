@@ -31,49 +31,14 @@
     body { background-color: #FFFFFF; font-family: Arial, sans-serif; color: #000; padding: 10px; margin: 0; box-sizing: border-box; }
     h1 { margin-bottom: 16px; background-color: #E6E6E6; padding: 10px; border-radius: 4px; font-size: 6vw; text-align: center; color: #000; }
     @media (min-width: 768px) { h1 { font-size: 28px; text-align: left; } }
-
-    table {
-      width: 100%;
-      font-size: 13px;
-      border-collapse: collapse;
-      table-layout: fixed; /* garante alinhamento */
-    }
-    thead tr th {
-      background: #808080;
-      color: #000;
-      padding: 8px;
-      text-align: center;
-      font-weight: bold;
-      border: 1px solid #CCC;
-      white-space: nowrap;
-    }
+    table { width: 100%; font-size: 13px; border-collapse: collapse; }
+    thead tr th { background: #E6E6E6; color: #000; padding: 8px; text-align: center; font-weight: bold; border: 1px solid #CCC; }
     tbody tr:nth-child(even) { background-color: #F2F2F2; }
     tbody tr:nth-child(odd) { background-color: #FFF; }
-    td {
-      padding: 8px 12px;
-      border: 1px solid #CCC;
-      text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      color: #000;
-    }
-
-    /* Remove min-width global que sobrescreve larguras fixas */
-    table.dataTable th, table.dataTable td { text-align: center; min-width: 0; }
-
-    /* Larguras fixas específicas */
-    #planilha th:nth-child(1), #planilha td:nth-child(1) { width: 80px;  min-width: 80px; }   /* SENHA */
-    #planilha th:nth-child(2), #planilha td:nth-child(2) { width: 110px; min-width: 110px; }  /* DATA */
-    #planilha th:nth-child(3), #planilha td:nth-child(3) { width: 110px; min-width: 110px; }  /* CENTRAL */
-    #planilha th:nth-child(4), #planilha td:nth-child(4) { width: 140px; min-width: 140px; }  /* CARGA/TRANSPORTE */
-    #planilha th:nth-child(5), #planilha td:nth-child(5) { width: 100px; min-width: 100px; }  /* NOTAS */
-    #planilha th:nth-child(6), #planilha td:nth-child(6) { width: 160px; min-width: 160px; }  /* STATUS DA CARGA */
-    #planilha th:nth-child(7), #planilha td:nth-child(7) { width: 180px; min-width: 180px; }  /* FORNECEDOR */
-    #planilha th:nth-child(8), #planilha td:nth-child(8) { width: 180px; min-width: 180px; }  /* TIPO DE PRODUTO */
-
+    td { padding: 8px 12px; border: 1px solid #CCC; white-space: nowrap; text-align: center; max-width: 150px; overflow: hidden; text-overflow: ellipsis; color: #000; }
     .filter-select { width: 100%; padding: 6px; font-size: 13px; background: #E0F4FF; border: 1px solid #CCC; border-radius: 4px; color: #000; text-align: center; appearance: auto; }
     input.dataTables_filter input { color: #000 !important; background: #E0F4FF !important; border-radius: 4px; border: 1px solid #CCC; padding: 4px 8px; font-size: 14px; box-sizing: border-box; }
+    table.dataTable th, table.dataTable td { min-width: 120px; text-align: center; }
     div.dataTables_wrapper { overflow-x: auto; position: relative; }
     @media (max-width: 768px) { table.dataTable { display: block; width: max-content; } .filter-select { font-size: 14px; } td, th { font-size: 12px; } }
     .dataTables_wrapper .dataTables_paginate .paginate_button { color: #CC0000 !important; background-color: #fff !important; border: 1px solid #CCC !important; border-radius: 4px; padding: 4px 8px; margin: 2px; font-weight: bold; }
@@ -97,7 +62,7 @@
   }
 </script>
 <div id="userBar" style="
-  background:#808080; 
+  background:#E6E6E6; 
   padding:10px; 
   display:flex; 
   justify-content:space-between; 
@@ -183,26 +148,13 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
   });
 
   const table = $("#planilha").DataTable({
-    paging:false,
-    searching:true,
-    info:false,
-    scrollX:true,
-    autoWidth:false,
+    paging:false, searching:true, info:false, scrollX:true, autoWidth:false,
     fixedHeader:{header:true, headerOffset:0},
     stateSave:true,
-    language:{search:"Buscar:", zeroRecords:"Nenhum registro encontrado", infoEmpty:"Nenhum dado disponível"},
-    columnDefs: [
-        { width: '80px', targets: 0 },
-        { width: '110px', targets: [1,2] },
-        { width: '140px', targets: 3 },
-        { width: '100px', targets: 4 },
-        { width: '160px', targets: 5 },
-        { width: '180px', targets: [6,7] }
-    ]
+    language:{search:"Buscar:", zeroRecords:"Nenhum registro encontrado", infoEmpty:"Nenhum dado disponível"}
   });
 
-  table.columns.adjust().draw();
-
+  // Atualiza total de cargas
   function atualizarTotalCargas(){
     const total = table.rows({search:'applied'}).data().length;
     document.getElementById("totalCargas").textContent = "Total de Cargas: "+total;
@@ -210,6 +162,7 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
   table.on('draw', atualizarTotalCargas);
   atualizarTotalCargas();
 
+  // Função de filtros dependentes
   function atualizarFiltros(){
     table.columns().every(function(){
       const column = this;
@@ -221,6 +174,7 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
       valores.forEach(v=>select.append(`<option value="${v}">${v}</option>`));
     });
 
+    // Reaplica valores salvos do localStorage
     table.columns().every(function(){
       const column = this;
       const select = $(".filters th").eq(column.index()).find("select");
@@ -233,6 +187,7 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
     });
   }
 
+  // Configura eventos de filtro
   table.columns().every(function(){
     const column = this;
     const select = $(".filters th").eq(column.index()).find("select");
@@ -258,11 +213,7 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
 
   const shareBtn = document.getElementById("btnShare"); 
   const shareMenu = document.getElementById("shareMenu");
-  shareBtn.addEventListener("click",()=>{ 
-    shareMenu.style.left=(shareBtn.offsetLeft)+"px"; 
-    shareMenu.style.top=(shareBtn.offsetTop + shareBtn.offsetHeight + 5)+"px"; 
-    shareMenu.style.display="block"; 
-  });
+  shareBtn.addEventListener("click",()=>{ shareMenu.style.left=(shareBtn.offsetLeft)+"px"; shareMenu.style.top=(shareBtn.offsetTop + shareBtn.offsetHeight + 5)+"px"; shareMenu.style.display="block"; });
   document.addEventListener("click",(e)=>{ if(!shareBtn.contains(e.target) && !shareMenu.contains(e.target)) shareMenu.style.display="none"; });
   $(document).on("click",".share-option",function(){
     const type = $(this).data("type");
@@ -273,7 +224,7 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
 
 }});
 
-// Popup
+// Popup para NOTAS e CARGA/TRANSPORTE
 $(document).on("click",".popup-cell",function(){
   const text = $(this).data("text");
   const col = $(this).data("col");
@@ -283,7 +234,7 @@ $(document).on("click",".popup-cell",function(){
 });
 $("#fecharPopup, #notaOverlay").on("click",function(){ $("#notaOverlay, #notaPopup").fadeOut(200); });
 
-// Exportações
+// Export PDF/Excel
 function exportPDF(table){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({orientation:"landscape"});
