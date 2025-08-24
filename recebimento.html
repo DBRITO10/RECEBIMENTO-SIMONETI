@@ -31,11 +31,34 @@
     body { background-color: #FFFFFF; font-family: Arial, sans-serif; color: #000; padding: 10px; margin: 0; box-sizing: border-box; }
     h1 { margin-bottom: 16px; background-color: #E6E6E6; padding: 10px; border-radius: 4px; font-size: 6vw; text-align: center; color: #000; }
     @media (min-width: 768px) { h1 { font-size: 28px; text-align: left; } }
-    table { width: 100%; font-size: 13px; border-collapse: collapse; }
-    thead tr th { background: #E6E6E6; color: #000; padding: 8px; text-align: center; font-weight: bold; border: 1px solid #CCC; }
+
+    table {
+      width: 100%;
+      font-size: 13px;
+      border-collapse: collapse;
+      table-layout: fixed; /* 👈 garante alinhamento */
+    }
+    thead tr th {
+      background: #E6E6E6;
+      color: #000;
+      padding: 8px;
+      text-align: center;
+      font-weight: bold;
+      border: 1px solid #CCC;
+      white-space: nowrap;
+    }
     tbody tr:nth-child(even) { background-color: #F2F2F2; }
     tbody tr:nth-child(odd) { background-color: #FFF; }
-    td { padding: 8px 12px; border: 1px solid #CCC; white-space: nowrap; text-align: center; max-width: 150px; overflow: hidden; text-overflow: ellipsis; color: #000; }
+    td {
+      padding: 8px 12px;
+      border: 1px solid #CCC;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #000;
+    }
+
     .filter-select { width: 100%; padding: 6px; font-size: 13px; background: #E0F4FF; border: 1px solid #CCC; border-radius: 4px; color: #000; text-align: center; appearance: auto; }
     input.dataTables_filter input { color: #000 !important; background: #E0F4FF !important; border-radius: 4px; border: 1px solid #CCC; padding: 4px 8px; font-size: 14px; box-sizing: border-box; }
     table.dataTable th, table.dataTable td { min-width: 120px; text-align: center; }
@@ -154,6 +177,9 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
     language:{search:"Buscar:", zeroRecords:"Nenhum registro encontrado", infoEmpty:"Nenhum dado disponível"}
   });
 
+  // 👇 Corrige larguras após montar
+  table.columns.adjust().draw();
+
   // Atualiza total de cargas
   function atualizarTotalCargas(){
     const total = table.rows({search:'applied'}).data().length;
@@ -174,7 +200,7 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
       valores.forEach(v=>select.append(`<option value="${v}">${v}</option>`));
     });
 
-    // Reaplica valores salvos do localStorage
+    // Reaplica valores salvos
     table.columns().every(function(){
       const column = this;
       const select = $(".filters th").eq(column.index()).find("select");
@@ -224,7 +250,7 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
 
 }});
 
-// Popup para NOTAS e CARGA/TRANSPORTE
+// Popup
 $(document).on("click",".popup-cell",function(){
   const text = $(this).data("text");
   const col = $(this).data("col");
@@ -234,7 +260,7 @@ $(document).on("click",".popup-cell",function(){
 });
 $("#fecharPopup, #notaOverlay").on("click",function(){ $("#notaOverlay, #notaPopup").fadeOut(200); });
 
-// Export PDF/Excel
+// Exportações
 function exportPDF(table){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({orientation:"landscape"});
