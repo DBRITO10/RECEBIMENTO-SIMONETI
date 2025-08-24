@@ -36,7 +36,7 @@
       width: 100%;
       font-size: 13px;
       border-collapse: collapse;
-      table-layout: fixed; /* 👈 garante alinhamento */
+      table-layout: fixed; /* garante alinhamento */
     }
     thead tr th {
       background: #808080;
@@ -59,9 +59,21 @@
       color: #000;
     }
 
+    /* Remove min-width global que sobrescreve larguras fixas */
+    table.dataTable th, table.dataTable td { text-align: center; min-width: 0; }
+
+    /* Larguras fixas específicas */
+    #planilha th:nth-child(1), #planilha td:nth-child(1) { width: 80px;  min-width: 80px; }   /* SENHA */
+    #planilha th:nth-child(2), #planilha td:nth-child(2) { width: 110px; min-width: 110px; }  /* DATA */
+    #planilha th:nth-child(3), #planilha td:nth-child(3) { width: 110px; min-width: 110px; }  /* CENTRAL */
+    #planilha th:nth-child(4), #planilha td:nth-child(4) { width: 140px; min-width: 140px; }  /* CARGA/TRANSPORTE */
+    #planilha th:nth-child(5), #planilha td:nth-child(5) { width: 100px; min-width: 100px; }  /* NOTAS */
+    #planilha th:nth-child(6), #planilha td:nth-child(6) { width: 160px; min-width: 160px; }  /* STATUS DA CARGA */
+    #planilha th:nth-child(7), #planilha td:nth-child(7) { width: 180px; min-width: 180px; }  /* FORNECEDOR */
+    #planilha th:nth-child(8), #planilha td:nth-child(8) { width: 180px; min-width: 180px; }  /* TIPO DE PRODUTO */
+
     .filter-select { width: 100%; padding: 6px; font-size: 13px; background: #E0F4FF; border: 1px solid #CCC; border-radius: 4px; color: #000; text-align: center; appearance: auto; }
     input.dataTables_filter input { color: #000 !important; background: #E0F4FF !important; border-radius: 4px; border: 1px solid #CCC; padding: 4px 8px; font-size: 14px; box-sizing: border-box; }
-    table.dataTable th, table.dataTable td { min-width: 120px; text-align: center; }
     div.dataTables_wrapper { overflow-x: auto; position: relative; }
     @media (max-width: 768px) { table.dataTable { display: block; width: max-content; } .filter-select { font-size: 14px; } td, th { font-size: 12px; } }
     .dataTables_wrapper .dataTables_paginate .paginate_button { color: #CC0000 !important; background-color: #fff !important; border: 1px solid #CCC !important; border-radius: 4px; padding: 4px 8px; margin: 2px; font-weight: bold; }
@@ -75,17 +87,6 @@
     #notaPopup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color: #000; border-radius: 10px; padding: 20px; max-width: 90%; max-height: 70%; overflow-y: auto; z-index: 2100; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
     #notaPopup h2 { margin-top: 0; color: #CC0000; }
     #notaPopup button { margin-top: 12px; padding: 6px 14px; border: none; background: #CC0000; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; }
-
-    /* ==== Larguras menores para as 5 colunas pedidas (sobrescrevem o min-width global) ==== */
-    /* Ordem baseada em colunasDesejadas:
-       1 SENHA | 2 DATA | 3 CENTRAL | 4 CARGA/TRANSPORTE | 5 NOTAS | 6 STATUS | 7 FORNECEDOR | 8 TIPO */
-    #planilha th:nth-child(1), #planilha td:nth-child(1) { width: 80px;  min-width: 80px; }   /* SENHA */
-    #planilha th:nth-child(2), #planilha td:nth-child(2) { width: 110px; min-width: 110px; }  /* DATA */
-    #planilha th:nth-child(3), #planilha td:nth-child(3) { width: 110px; min-width: 110px; }  /* CENTRAL */
-    #planilha th:nth-child(4), #planilha td:nth-child(4) { width: 140px; min-width: 140px; }  /* CARGA/TRANSPORTE */
-    #planilha th:nth-child(5), #planilha td:nth-child(5) { width: 100px; min-width: 100px; }  /* NOTAS */
-    /* ================================================================================================= */
-
     #notaPopup button:hover { background: #A80000; }
   </style>
 </head>
@@ -182,16 +183,26 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
   });
 
   const table = $("#planilha").DataTable({
-    paging:false, searching:true, info:false, scrollX:true, autoWidth:false,
+    paging:false,
+    searching:true,
+    info:false,
+    scrollX:true,
+    autoWidth:false,
     fixedHeader:{header:true, headerOffset:0},
     stateSave:true,
-    language:{search:"Buscar:", zeroRecords:"Nenhum registro encontrado", infoEmpty:"Nenhum dado disponível"}
+    language:{search:"Buscar:", zeroRecords:"Nenhum registro encontrado", infoEmpty:"Nenhum dado disponível"},
+    columnDefs: [
+        { width: '80px', targets: 0 },
+        { width: '110px', targets: [1,2] },
+        { width: '140px', targets: 3 },
+        { width: '100px', targets: 4 },
+        { width: '160px', targets: 5 },
+        { width: '180px', targets: [6,7] }
+    ]
   });
 
-  // 👇 Corrige larguras após montar
   table.columns.adjust().draw();
 
-  // Atualiza total de cargas
   function atualizarTotalCargas(){
     const total = table.rows({search:'applied'}).data().length;
     document.getElementById("totalCargas").textContent = "Total de Cargas: "+total;
@@ -199,7 +210,6 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
   table.on('draw', atualizarTotalCargas);
   atualizarTotalCargas();
 
-  // Função de filtros dependentes
   function atualizarFiltros(){
     table.columns().every(function(){
       const column = this;
@@ -211,7 +221,6 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
       valores.forEach(v=>select.append(`<option value="${v}">${v}</option>`));
     });
 
-    // Reaplica valores salvos
     table.columns().every(function(){
       const column = this;
       const select = $(".filters th").eq(column.index()).find("select");
@@ -224,7 +233,6 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
     });
   }
 
-  // Configura eventos de filtro
   table.columns().every(function(){
     const column = this;
     const select = $(".filters th").eq(column.index()).find("select");
@@ -250,7 +258,11 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
 
   const shareBtn = document.getElementById("btnShare"); 
   const shareMenu = document.getElementById("shareMenu");
-  shareBtn.addEventListener("click",()=>{ shareMenu.style.left=(shareBtn.offsetLeft)+"px"; shareMenu.style.top=(shareBtn.offsetTop + shareBtn.offsetHeight + 5)+"px"; shareMenu.style.display="block"; });
+  shareBtn.addEventListener("click",()=>{ 
+    shareMenu.style.left=(shareBtn.offsetLeft)+"px"; 
+    shareMenu.style.top=(shareBtn.offsetTop + shareBtn.offsetHeight + 5)+"px"; 
+    shareMenu.style.display="block"; 
+  });
   document.addEventListener("click",(e)=>{ if(!shareBtn.contains(e.target) && !shareMenu.contains(e.target)) shareMenu.style.display="none"; });
   $(document).on("click",".share-option",function(){
     const type = $(this).data("type");
