@@ -5,7 +5,7 @@
   <title>CARGAS DO DIA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#CC0000">
+  <meta name="theme-color" content="#1E90FF">
 
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -26,10 +26,10 @@
   <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.dataTables.min.css">
 
   <style>
-    body { background-color: #FFFFFF; font-family: Arial, sans-serif; color: #000; padding: 10px; margin: 0; box-sizing: border-box; }
+    body { background-color: #F0F8FF; font-family: Arial, sans-serif; color: #000; padding: 10px; margin: 0; box-sizing: border-box; }
     h1 { 
       margin-bottom: 16px; 
-      background-color: #808080; 
+      background-color: #1E90FF; 
       padding: 10px; 
       border-radius: 4px; 
       font-size: 6vw; 
@@ -41,33 +41,37 @@
     }
     table { width: 100%; font-size: 13px; border-collapse: collapse; }
     thead tr th { 
-      background: #808080; 
+      background: #4682B4; 
       color: #fff; 
       padding: 8px; 
       text-align: center; 
       font-weight: bold; 
       border: 1px solid #CCC; 
     }
-    tbody tr:nth-child(even) { background-color: #F2F2F2; }
-    tbody tr:nth-child(odd) { background-color: #FFF; }
+    tbody tr:nth-child(even) { background-color: #E6F3FF; }
+    tbody tr:nth-child(odd) { background-color: #FFFFFF; }
     td { padding: 8px 12px; border: 1px solid #CCC; white-space: nowrap; text-align: center; max-width: 150px; overflow: hidden; text-overflow: ellipsis; color: #000; }
-    .filter-select { width: 100%; padding: 6px; font-size: 13px; background: #E0F4FF; border: 1px solid #CCC; border-radius: 4px; color: #000; text-align: center; appearance: auto; cursor: pointer;}
-    input.dataTables_filter input { color: #000 !important; background: #E0F4FF !important; border-radius: 4px; border: 1px solid #CCC; padding: 4px 8px; font-size: 14px; box-sizing: border-box; }
+    .filter-select { width: 100%; padding: 6px; font-size: 13px; background: #B0E0E6; border: 1px solid #CCC; border-radius: 4px; color: #000; text-align: center; appearance: auto; cursor: pointer;}
+    .filter-select.applied {
+        background-color: #FFD700;
+        font-weight: bold;
+    }
+    input.dataTables_filter input { color: #000 !important; background: #B0E0E6 !important; border-radius: 4px; border: 1px solid #CCC; padding: 4px 8px; font-size: 14px; box-sizing: border-box; }
     table.dataTable th, table.dataTable td { min-width: 120px; text-align: center; }
     div.dataTables_wrapper { overflow-x: auto; position: relative; }
     @media (max-width: 768px) { table.dataTable { display: block; width: max-content; } .filter-select { font-size: 14px; } td, th { font-size: 12px; } }
-    .dataTables_wrapper .dataTables_paginate .paginate_button { color: #CC0000 !important; background-color: #fff !important; border: 1px solid #CCC !important; border-radius: 4px; padding: 4px 8px; margin: 2px; font-weight: bold; }
+    .dataTables_wrapper .dataTables_paginate .paginate_button { color: #1E90FF !important; background-color: #fff !important; border: 1px solid #CCC !important; border-radius: 4px; padding: 4px 8px; margin: 2px; font-weight: bold; }
     .dataTables_wrapper .dataTables_paginate .paginate_button:hover { background-color: #f1f1f1 !important; color: #000 !important; }
-    #btnShare { background:#CC0000; color:#fff; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; margin-left:10px; }
-    #btnShare:hover { background:#A80000; }
+    #btnShare { background:#1E90FF; color:#fff; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; margin-left:10px; }
+    #btnShare:hover { background:#104E8B; }
     #shareMenu { display:none; position:absolute; background:#fff; border:1px solid #ccc; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.2); z-index:3000; }
-    #shareMenu .share-option { padding:10px 14px; cursor:pointer; font-size:14px; background:#CC0000; color:#fff; border-radius:4px; margin:4px; text-align:center; }
-    #shareMenu .share-option:hover { background:#A80000; }
+    #shareMenu .share-option { padding:10px 14px; cursor:pointer; font-size:14px; background:#1E90FF; color:#fff; border-radius:4px; margin:4px; text-align:center; }
+    #shareMenu .share-option:hover { background:#104E8B; }
     #notaOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; }
     #notaPopup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color: #000; border-radius: 10px; padding: 20px; max-width: 90%; max-height: 70%; overflow-y: auto; z-index: 2100; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-    #notaPopup h2 { margin-top: 0; color: #CC0000; }
-    #notaPopup button { margin-top: 12px; padding: 6px 14px; border: none; background: #CC0000; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; }
-    #notaPopup button:hover { background: #A80000; }
+    #notaPopup h2 { margin-top: 0; color: #1E90FF; }
+    #notaPopup button { margin-top: 12px; padding: 6px 14px; border: none; background: #1E90FF; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    #notaPopup button:hover { background: #104E8B; }
     
     .status-cell {
       font-weight: bold;
@@ -121,7 +125,7 @@
   }
 </script>
 <div id="userBar" style="
-  background:#808080; 
+  background:#4682B4; 
   padding:10px; 
   display:flex; 
   justify-content:space-between; 
@@ -131,7 +135,7 @@
 ">
   <span id="welcomeUser" style="font-weight:bold; color:#fff;"></span>
   <button onclick="logout()" style="
-    background:#808080;
+    background:#4682B4;
     color:white;
     border:none;
     padding:6px 12px;
@@ -275,8 +279,7 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
       let valor = row[col] || "";
       let cellHtml = `<td>${valor}</td>`;
       if (index === statusIndex) {
-        const statusClass = valor.replace(/\s+/g, '-').toLowerCase();
-        cellHtml = `<td class="status-cell status-${statusClass}" style="background-color: ${coresStatus[valor] || '#808080'};">${valor}</td>`;
+        cellHtml = `<td class="status-cell" style="background-color: ${coresStatus[valor] || '#4682B4'};">${valor}</td>`;
       }
       rowHtml += cellHtml;
     });
@@ -326,12 +329,12 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
 
   // Lógica do Modal de Filtro
   $(document).on('click', '.filter-select', function() {
-      const columnHeader = $(this).closest('th').index();
-      const columnName = colunasDesejadas[columnHeader];
+      const columnIndex = $(this).closest('th').index();
+      const columnName = colunasDesejadas[columnIndex];
       const allData = dataTable.rows().data().toArray();
-      const uniqueValues = [...new Set(allData.map(row => row[columnHeader]))].sort();
+      const uniqueValues = [...new Set(allData.map(row => row[columnIndex]))].sort();
       
-      const savedFilter = localStorage.getItem(`filtroColuna${columnHeader}`);
+      const savedFilter = localStorage.getItem(`filtroColuna${columnIndex}`);
       const savedValues = savedFilter ? JSON.parse(savedFilter) : [];
       
       let checkboxesHtml = '';
@@ -348,7 +351,7 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
 
       $('#modalTitle').text(`Filtrar por ${columnName}`);
       $('#modalCheckboxList').html(checkboxesHtml);
-      $('#filterModalOverlay').data('column-index', columnHeader).show();
+      $('#filterModalOverlay').data('column-index', columnIndex).show();
   });
 
   $('#filterModalOverlay').on('click', function(e) {
@@ -361,6 +364,19 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
   $('#filterModalContent').on('click', 'input[type="checkbox"]', function() {
       aplicarFiltroModal();
   });
+  
+  function atualizarBotaoFiltro() {
+    colunasDesejadas.forEach((col, index) => {
+      const savedFilter = localStorage.getItem(`filtroColuna${index}`);
+      const selectedValues = savedFilter ? JSON.parse(savedFilter) : [];
+      const button = $(`.filter-select[data-column-name="${col}"]`);
+      if (selectedValues.length > 0) {
+        button.text("APLICADO").addClass("applied");
+      } else {
+        button.text("Filtrar / Limpar Filtro").removeClass("applied");
+      }
+    });
+  }
 
   function aplicarFiltroModal() {
       const columnIndex = $('#filterModalOverlay').data('column-index');
@@ -378,7 +394,10 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
       } else {
           column.search('').draw();
       }
+      atualizarBotaoFiltro();
   }
+  
+  atualizarBotaoFiltro();
 
 }});
 
