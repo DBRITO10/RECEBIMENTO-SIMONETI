@@ -217,6 +217,23 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
     language:{search:"Buscar:", zeroRecords:"Nenhum registro encontrado", infoEmpty:"Nenhum dado disponível"}
   });
 
+  // Função para aplicar os filtros salvos no localStorage
+  function aplicarFiltrosSalvos() {
+    dataTable.columns().every(function() {
+      const column = this;
+      const columnIndex = column.index();
+      const savedFilter = localStorage.getItem(`filtroColuna${columnIndex}`);
+      if (savedFilter) {
+        const savedValues = JSON.parse(savedFilter);
+        if (savedValues.length > 0) {
+          const searchString = savedValues.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|');
+          column.search(searchString, true, false);
+        }
+      }
+    });
+    dataTable.draw();
+  }
+
   // Atualiza total de cargas
   function atualizarTotalCargas(){
     const total = dataTable.rows({search:'applied'}).data().length;
@@ -282,7 +299,7 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
   $('#filterModalContent').on('click', 'input[type="checkbox"]', function() {
       aplicarFiltroModal();
   });
-
+  
   function atualizarBotaoFiltro() {
     colunasDesejadas.forEach((col, index) => {
       const savedFilter = localStorage.getItem(`filtroColuna${index}`);
@@ -316,20 +333,8 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
       atualizarTotalCargas();
   }
 
-  // Ao carregar a página, aplique os filtros salvos no localStorage
-  table.columns().every(function() {
-    const column = this;
-    const columnIndex = column.index();
-    const savedFilter = localStorage.getItem(`filtroColuna${columnIndex}`);
-    if (savedFilter) {
-      const savedValues = JSON.parse(savedFilter);
-      if (savedValues.length > 0) {
-        const searchString = savedValues.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|');
-        column.search(searchString, true, false);
-      }
-    }
-  });
-  table.draw();
+  // Executa as funções de atualização e aplicação de filtros após a tabela ser inicializada
+  aplicarFiltrosSalvos();
   atualizarBotaoFiltro();
 }});
 
