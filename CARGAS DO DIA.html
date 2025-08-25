@@ -133,7 +133,7 @@
 const sheetID = "1Ore02M4GARvE6hldNDZmiVNDrABb4dgaZO7wlMY-fjs";
 const gid = "2090543957";
 const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`;
-const colunasDesejadas = ["ORDEM DE AGEND","SENHA","DATA","CENTRAL","CARGAS","STATUS","FORNECEDOR","TIPO DE PRODUTO"];
+const colunasDesejadas = ["ORDEM DE AGENDA","DATA","CENTRAL","CARGAS","STATUS","FORNECEDOR","TIPO DE PRODUTO"];
 
 Papa.parse(csvUrl, { download: true, header: true, complete: function (results) {
   const data = results.data;
