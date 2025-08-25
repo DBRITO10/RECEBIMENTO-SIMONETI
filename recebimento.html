@@ -315,7 +315,7 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
       atualizarBotaoFiltro();
       atualizarTotalCargas();
   }
-  
+
   // Ao carregar a página, aplique os filtros salvos no localStorage
   table.columns().every(function() {
     const column = this;
@@ -331,7 +331,6 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
   });
   table.draw();
   atualizarBotaoFiltro();
-
 }});
 
 // Popup para NOTAS e CARGA/TRANSPORTE
