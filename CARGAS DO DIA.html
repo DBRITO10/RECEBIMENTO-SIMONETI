@@ -51,7 +51,7 @@
     tbody tr:nth-child(even) { background-color: #F2F2F2; }
     tbody tr:nth-child(odd) { background-color: #FFF; }
     td { padding: 8px 12px; border: 1px solid #CCC; white-space: nowrap; text-align: center; max-width: 150px; overflow: hidden; text-overflow: ellipsis; color: #000; }
-    .filter-select { width: 100%; padding: 6px; font-size: 13px; background: #E0F4FF; border: 1px solid #CCC; border-radius: 4px; color: #000; text-align: center; appearance: auto; }
+    .filter-select { width: 100%; padding: 6px; font-size: 13px; background: #E0F4FF; border: 1px solid #CCC; border-radius: 4px; color: #000; text-align: center; appearance: auto; cursor: pointer;}
     input.dataTables_filter input { color: #000 !important; background: #E0F4FF !important; border-radius: 4px; border: 1px solid #CCC; padding: 4px 8px; font-size: 14px; box-sizing: border-box; }
     table.dataTable th, table.dataTable td { min-width: 120px; text-align: center; }
     div.dataTables_wrapper { overflow-x: auto; position: relative; }
@@ -68,6 +68,50 @@
     #notaPopup h2 { margin-top: 0; color: #CC0000; }
     #notaPopup button { margin-top: 12px; padding: 6px 14px; border: none; background: #CC0000; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; }
     #notaPopup button:hover { background: #A80000; }
+    
+    .status-cell {
+      font-weight: bold;
+      color: white !important;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+    .status-em-atraso { background-color: #F44336; }
+    .status-carga-recebida { background-color: #4CAF50; }
+    .status-em-recebimento { background-color: #FFC107; }
+    .status-no-patio { background-color: #03A9F4; }
+    .status-reagenda { background-color: #9C27B0; }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      max-height: 80%;
+      overflow-y: auto;
+    }
+    .modal-checkbox-list {
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-checkbox-list label {
+      margin: 5px 0;
+    }
+    .modal-title {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
@@ -124,6 +168,13 @@
   </tfoot>
 </table>
 
+<div id="filterModalOverlay" class="modal-overlay">
+    <div id="filterModalContent" class="modal-content">
+        <div id="modalTitle" class="modal-title"></div>
+        <div id="modalCheckboxList" class="modal-checkbox-list"></div>
+    </div>
+</div>
+
 <div id="notaOverlay"></div>
 <div id="notaPopup">
   <h2>Detalhes</h2>
@@ -136,21 +187,23 @@ const sheetID = "1Ore02M4GARvE6hldNDZmiVNDrABb4dgaZO7wlMY-fjs";
 const gid = "2090543957";
 const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`;
 const colunasDesejadas = ["ORDEM DE AGENDA","DATA","CENTRAL","CARGAS","STATUS","FORNECEDOR","TIPO DE PRODUTO"];
+const coresStatus = {
+    "CARGA RECEBIDA": '#4CAF50',
+    "EM RECEBIMENTO": '#FFC107',
+    "NO PATIO": '#03A9F4',
+    "EM ATRASO": '#F44336',
+    "REAGENDA": '#9C27B0'
+};
 
-let myChart; // Variável global para a instância do gráfico
+let myChart;
+let dataTable;
 
 function renderizarGrafico(data) {
     const statusCounts = {};
-    const cores = {
-        "CARGA RECEBIDA": '#4CAF50', // Verde
-        "EM RECEBIMENTO": '#FFC107', // Amarelo
-        "NO PATIO": '#03A9F4', // Azul
-        "EM ATRASO": '#F44336', // Vermelho
-        "REAGENDA": '#9C27B0' // Roxo
-    };
-
+    const statusIndex = colunasDesejadas.indexOf("STATUS");
+    
     data.forEach(row => {
-        const status = row[colunasDesejadas.indexOf("STATUS")];
+        const status = row[statusIndex];
         if (status) {
             statusCounts[status] = (statusCounts[status] || 0) + 1;
         }
@@ -158,10 +211,10 @@ function renderizarGrafico(data) {
 
     const labels = Object.keys(statusCounts);
     const chartData = Object.values(statusCounts);
-    const backgroundColors = labels.map(label => cores[label] || '#808080');
+    const backgroundColors = labels.map(label => coresStatus[label] || '#808080');
 
     if (myChart) {
-        myChart.destroy(); // Destrói a instância anterior do gráfico
+        myChart.destroy();
     }
 
     const ctx = document.getElementById('statusChart').getContext('2d');
@@ -200,7 +253,6 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
   const data = results.data;
   if(!data.length || Object.keys(data[0]).length===0){ alert("Falha ao carregar dados."); return; }
 
-  // Normaliza os nomes das colunas
   results.meta.fields = results.meta.fields.map(f=>f.trim());
   data.forEach(row=>{ Object.keys(row).forEach(k=>{ if(k!==k.trim()){ row[k.trim()]=row[k]; delete row[k]; } }); });
   data.forEach(row=>{ colunasDesejadas.forEach(col=>{ if(row[col]) row[col]=row[col].trim(); }); });
@@ -208,26 +260,31 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
   const headerRow = document.querySelector("#planilha thead tr.headers");
   const filterRow = document.querySelector("#planilha thead tr.filters");
   const tableBody = document.querySelector("#planilha tbody");
+  const statusIndex = colunasDesejadas.indexOf("STATUS");
 
-  colunasDesejadas.forEach(col=>{
+  colunasDesejadas.forEach(col => {
     headerRow.innerHTML += `<th>${col}</th>`;
-    filterRow.innerHTML += `<th><select multiple class="filter-select" size="3"></select></th>`;
+    filterRow.innerHTML += `<th><button class="filter-select" data-column-name="${col}">Filtrar / Limpar Filtro</button></th>`;
   });
   
-  // Corrigido o colspan no tfoot
   document.querySelector("#planilha tfoot th").setAttribute("colspan", colunasDesejadas.length);
 
-  data.forEach(row=>{
+  data.forEach(row => {
     let rowHtml = "<tr>";
-    colunasDesejadas.forEach(col=>{
-      let valor = row[col]||"";
-      rowHtml += `<td>${valor}</td>`;
+    colunasDesejadas.forEach((col, index) => {
+      let valor = row[col] || "";
+      let cellHtml = `<td>${valor}</td>`;
+      if (index === statusIndex) {
+        const statusClass = valor.replace(/\s+/g, '-').toLowerCase();
+        cellHtml = `<td class="status-cell status-${statusClass}" style="background-color: ${coresStatus[valor] || '#808080'};">${valor}</td>`;
+      }
+      rowHtml += cellHtml;
     });
     rowHtml += "</tr>";
     tableBody.innerHTML += rowHtml;
   });
 
-  const table = $("#planilha").DataTable({
+  dataTable = $("#planilha").DataTable({
     paging:false, searching:true, info:false, scrollX:true, autoWidth:false,
     fixedHeader:{header:true, headerOffset:0},
     stateSave:true,
@@ -235,59 +292,17 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
     order: [[0, 'desc']]
   });
   
-  // Renderiza o gráfico inicial
-  renderizarGrafico(table.rows().data().toArray());
+  renderizarGrafico(dataTable.rows().data().toArray());
 
-  // Atualiza total de cargas
   function atualizarTotalCargas(){
-    const total = table.rows({search:'applied'}).data().length;
+    const total = dataTable.rows({search:'applied'}).data().length;
     document.getElementById("totalCargas").textContent = "Total de Cargas: "+total;
   }
-  table.on('draw', () => {
+  dataTable.on('draw', () => {
       atualizarTotalCargas();
-      renderizarGrafico(table.rows({search:'applied'}).data().toArray());
+      renderizarGrafico(dataTable.rows({search:'applied'}).data().toArray());
   });
   atualizarTotalCargas();
-
-  // Função de filtros dependentes
-  function atualizarFiltros(){
-    table.columns().every(function(){
-      const column = this;
-      const select = $(".filters th").eq(column.index()).find("select");
-      let dataFiltrada = table.rows({search:'applied'}).data().toArray();
-      let valores = [...new Set(dataFiltrada.map(row=>row[column.index()]))].filter(v=>v);
-      valores.sort();
-      select.html('<option value="">Todos</option>');
-      valores.forEach(v=>select.append(`<option value="${v}">${v}</option>`));
-    });
-
-    // Reaplica valores salvos do localStorage
-    table.columns().every(function(){
-      const column = this;
-      const select = $(".filters th").eq(column.index()).find("select");
-      const savedVal = localStorage.getItem('filtroColuna'+column.index());
-      if(savedVal){
-        const savedValues = JSON.parse(savedVal);
-        select.val(savedValues);
-        const searchString = savedValues.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|');
-        column.search(searchString, true, false).draw();
-      }
-    });
-  }
-
-  // Configura eventos de filtro
-  table.columns().every(function(){
-    const column = this;
-    const select = $(".filters th").eq(column.index()).find("select");
-    select.on("change",function(){
-      const selectedValues = $(this).val();
-      localStorage.setItem('filtroColuna'+column.index(), JSON.stringify(selectedValues));
-      const searchString = selectedValues.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|');
-      column.search(searchString, true, false).draw();
-      atualizarFiltros();
-    });
-  });
-  atualizarFiltros();
 
   $(".dataTables_wrapper").css("position","relative");
   $("#planilha_filter").append(`
@@ -304,10 +319,66 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
   document.addEventListener("click",(e)=>{ if(!shareBtn.contains(e.target) && !shareMenu.contains(e.target)) shareMenu.style.display="none"; });
   $(document).on("click",".share-option",function(){
     const type = $(this).data("type");
-    if(type==="pdf") exportPDF(table);
-    if(type==="excel") exportExcel(table);
+    if(type==="pdf") exportPDF(dataTable);
+    if(type==="excel") exportExcel(dataTable);
     shareMenu.style.display="none";
   });
+
+  // Lógica do Modal de Filtro
+  $(document).on('click', '.filter-select', function() {
+      const columnHeader = $(this).closest('th').index();
+      const columnName = colunasDesejadas[columnHeader];
+      const allData = dataTable.rows().data().toArray();
+      const uniqueValues = [...new Set(allData.map(row => row[columnHeader]))].sort();
+      
+      const savedFilter = localStorage.getItem(`filtroColuna${columnHeader}`);
+      const savedValues = savedFilter ? JSON.parse(savedFilter) : [];
+      
+      let checkboxesHtml = '';
+      uniqueValues.forEach(value => {
+          if (value) {
+              const isChecked = savedValues.includes(value) ? 'checked' : '';
+              checkboxesHtml += `
+                  <label>
+                      <input type="checkbox" value="${value}" ${isChecked}> ${value}
+                  </label>
+              `;
+          }
+      });
+
+      $('#modalTitle').text(`Filtrar por ${columnName}`);
+      $('#modalCheckboxList').html(checkboxesHtml);
+      $('#filterModalOverlay').data('column-index', columnHeader).show();
+  });
+
+  $('#filterModalOverlay').on('click', function(e) {
+      if ($(e.target).is('#filterModalOverlay')) {
+          aplicarFiltroModal();
+          $(this).hide();
+      }
+  });
+
+  $('#filterModalContent').on('click', 'input[type="checkbox"]', function() {
+      aplicarFiltroModal();
+  });
+
+  function aplicarFiltroModal() {
+      const columnIndex = $('#filterModalOverlay').data('column-index');
+      const selectedValues = $('#modalCheckboxList input:checked').map(function() {
+          return this.value;
+      }).get();
+      
+      localStorage.setItem(`filtroColuna${columnIndex}`, JSON.stringify(selectedValues));
+      
+      const searchString = selectedValues.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|');
+      
+      const column = dataTable.column(columnIndex);
+      if (searchString) {
+          column.search(searchString, true, false).draw();
+      } else {
+          column.search('').draw();
+      }
+  }
 
 }});
 
