@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>RECEBIMENTO - MÓVEIS SIMONETTI</title>
+  <title>CARGAS DO DIA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#CC0000">
@@ -110,7 +110,7 @@
   }
 </script>
 
-<h1>RECEBIMENTO - MÓVEIS SIMONETTI</h1>
+<h1>CARGAS DO DIA</h1>
 <table id="planilha" class="display nowrap">
   <thead>
     <tr class="headers"></tr>
@@ -130,10 +130,10 @@
 </div>
 
 <script>
-const sheetID = "1LaYf3GKID_HdueUpZax7J_aco2-a1UVFBz1pZ4CkUGk";
-const gid = "0";
+const sheetID = "1Ore02M4GARvE6hldNDZmiVNDrABb4dgaZO7wlMY-fjs";
+const gid = "2090543957";
 const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`;
-const colunasDesejadas = ["SENHA","DATA","CENTRAL","CARGA/TRANSPORTE","NOTAS","STATUS DA CARGA","FORNECEDOR","TIPO DE PRODUTO"];
+const colunasDesejadas = ["ORDEM DE AGEND","SENHA","DATA","CENTRAL","CARGAS","STATUS","FORNECEDOR","TIPO DE PRODUTO"];
 
 Papa.parse(csvUrl, { download: true, header: true, complete: function (results) {
   const data = results.data;
