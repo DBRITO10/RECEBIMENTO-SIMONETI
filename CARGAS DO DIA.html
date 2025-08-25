@@ -7,14 +7,12 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#CC0000">
 
-  <!-- iOS PWA support -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Recebimento Simonetti">
   <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
   <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
 
-  <!-- Libs -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
@@ -22,8 +20,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- CSS DataTables -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
   <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.dataTables.min.css">
 
@@ -111,6 +109,10 @@
 </script>
 
 <h1>CARGAS DO DIA</h1>
+<div style="width: 100%; max-width: 400px; margin: 20px auto;">
+  <canvas id="statusChart"></canvas>
+</div>
+
 <table id="planilha" class="display nowrap">
   <thead>
     <tr class="headers"></tr>
@@ -135,10 +137,70 @@ const gid = "2090543957";
 const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`;
 const colunasDesejadas = ["ORDEM DE AGENDA","DATA","CENTRAL","CARGAS","STATUS","FORNECEDOR","TIPO DE PRODUTO"];
 
+let myChart; // Variável global para a instância do gráfico
+
+function renderizarGrafico(data) {
+    const statusCounts = {};
+    const cores = {
+        "CARGA RECEBIDA": '#4CAF50', // Verde
+        "EM RECEBIMENTO": '#FFC107', // Amarelo
+        "NO PATIO": '#03A9F4', // Azul
+        "EM ATRASO": '#F44336', // Vermelho
+        "REAGENDA": '#9C27B0' // Roxo
+    };
+
+    data.forEach(row => {
+        const status = row[colunasDesejadas.indexOf("STATUS")];
+        if (status) {
+            statusCounts[status] = (statusCounts[status] || 0) + 1;
+        }
+    });
+
+    const labels = Object.keys(statusCounts);
+    const chartData = Object.values(statusCounts);
+    const backgroundColors = labels.map(label => cores[label] || '#808080');
+
+    if (myChart) {
+        myChart.destroy(); // Destrói a instância anterior do gráfico
+    }
+
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    myChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: chartData,
+                backgroundColor: backgroundColors,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            const total = tooltipItem.dataset.data.reduce((sum, current) => sum + current, 0);
+                            const value = tooltipItem.raw;
+                            const percentage = (value / total * 100).toFixed(1);
+                            return `${tooltipItem.label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
 Papa.parse(csvUrl, { download: true, header: true, complete: function (results) {
   const data = results.data;
   if(!data.length || Object.keys(data[0]).length===0){ alert("Falha ao carregar dados."); return; }
 
+  // Normaliza os nomes das colunas
   results.meta.fields = results.meta.fields.map(f=>f.trim());
   data.forEach(row=>{ Object.keys(row).forEach(k=>{ if(k!==k.trim()){ row[k.trim()]=row[k]; delete row[k]; } }); });
   data.forEach(row=>{ colunasDesejadas.forEach(col=>{ if(row[col]) row[col]=row[col].trim(); }); });
@@ -156,9 +218,7 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
     let rowHtml = "<tr>";
     colunasDesejadas.forEach(col=>{
       let valor = row[col]||"";
-      if(col==="NOTAS" && valor==="") valor="Sem nota";
-      if(col==="NOTAS" || col==="CARGA/TRANSPORTE") rowHtml += `<td class="popup-cell" data-col="${col}" data-text="${valor}">${valor}</td>`;
-      else rowHtml += `<td>${valor}</td>`;
+      rowHtml += `<td>${valor}</td>`;
     });
     rowHtml += "</tr>";
     tableBody.innerHTML += rowHtml;
@@ -170,13 +230,19 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
     stateSave:true,
     language:{search:"Buscar:", zeroRecords:"Nenhum registro encontrado", infoEmpty:"Nenhum dado disponível"}
   });
+  
+  // Renderiza o gráfico inicial
+  renderizarGrafico(table.rows().data().toArray());
 
   // Atualiza total de cargas
   function atualizarTotalCargas(){
     const total = table.rows({search:'applied'}).data().length;
     document.getElementById("totalCargas").textContent = "Total de Cargas: "+total;
   }
-  table.on('draw', atualizarTotalCargas);
+  table.on('draw', () => {
+      atualizarTotalCargas();
+      renderizarGrafico(table.rows({search:'applied'}).data().toArray());
+  });
   atualizarTotalCargas();
 
   // Função de filtros dependentes
@@ -214,7 +280,6 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
       const valRegex = $.fn.dataTable.util.escapeRegex(val);
       column.search(valRegex ? '^'+valRegex+'$' : '', true, false).draw();
       atualizarFiltros();
-      atualizarTotalCargas();
     });
   });
   atualizarFiltros();
@@ -241,23 +306,13 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
 
 }});
 
-// Popup para NOTAS e CARGA/TRANSPORTE
-$(document).on("click",".popup-cell",function(){
-  const text = $(this).data("text");
-  const col = $(this).data("col");
-  $("#notaPopup h2").text(col);
-  $("#notaConteudo").text(text);
-  $("#notaOverlay, #notaPopup").fadeIn(200);
-});
-$("#fecharPopup, #notaOverlay").on("click",function(){ $("#notaOverlay, #notaPopup").fadeOut(200); });
-
 // Export PDF/Excel
 function exportPDF(table){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({orientation:"landscape"});
   const headers = colunasDesejadas;
   const data = table.rows({search:"applied"}).data().toArray();
-  doc.autoTable({head:[headers], body:data, styles:{fontSize:8, cellPadding:2}, columnStyles:{4:{cellWidth:60, overflow:"linebreak"}}});
+  doc.autoTable({head:[headers], body:data, styles:{fontSize:8, cellPadding:2}});
   doc.save("recebimento.pdf");
 }
 function exportExcel(table){
