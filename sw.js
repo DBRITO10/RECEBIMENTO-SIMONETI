@@ -4,6 +4,7 @@ const urlsToCache = [
   "./index.html",
   "./agendamento.html",
   "./recebimento.html",
+  "./CARGAS DO DIA.html",
   "./login.html",
   "./offline.html",
   "./manifest.json",
