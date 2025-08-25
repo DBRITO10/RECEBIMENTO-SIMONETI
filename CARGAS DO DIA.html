@@ -120,7 +120,7 @@
   </thead>
   <tbody></tbody>
   <tfoot>
-    <tr><th colspan="8" style="text-align:right; font-weight:bold;" id="totalCargas">Total de Cargas: 0</th></tr>
+    <tr><th colspan="7" style="text-align:right; font-weight:bold;" id="totalCargas">Total de Cargas: 0</th></tr>
   </tfoot>
 </table>
 
@@ -211,8 +211,11 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
 
   colunasDesejadas.forEach(col=>{
     headerRow.innerHTML += `<th>${col}</th>`;
-    filterRow.innerHTML += `<th><select class="filter-select"><option value="">Filtrar / Limpar Filtro</option></select></th>`;
+    filterRow.innerHTML += `<th><select multiple class="filter-select" size="3"></select></th>`;
   });
+  
+  // Corrigido o colspan no tfoot
+  document.querySelector("#planilha tfoot th").setAttribute("colspan", colunasDesejadas.length);
 
   data.forEach(row=>{
     let rowHtml = "<tr>";
@@ -228,7 +231,8 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
     paging:false, searching:true, info:false, scrollX:true, autoWidth:false,
     fixedHeader:{header:true, headerOffset:0},
     stateSave:true,
-    language:{search:"Buscar:", zeroRecords:"Nenhum registro encontrado", infoEmpty:"Nenhum dado disponível"}
+    language:{search:"Buscar:", zeroRecords:"Nenhum registro encontrado", infoEmpty:"Nenhum dado disponível"},
+    order: [[0, 'desc']]
   });
   
   // Renderiza o gráfico inicial
@@ -253,7 +257,7 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
       let dataFiltrada = table.rows({search:'applied'}).data().toArray();
       let valores = [...new Set(dataFiltrada.map(row=>row[column.index()]))].filter(v=>v);
       valores.sort();
-      select.html('<option value="">Filtrar / Limpar Filtro</option>');
+      select.html('<option value="">Todos</option>');
       valores.forEach(v=>select.append(`<option value="${v}">${v}</option>`));
     });
 
@@ -263,9 +267,10 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
       const select = $(".filters th").eq(column.index()).find("select");
       const savedVal = localStorage.getItem('filtroColuna'+column.index());
       if(savedVal){
-        select.val(savedVal);
-        const valRegex = $.fn.dataTable.util.escapeRegex(savedVal);
-        column.search(valRegex ? '^'+valRegex+'$' : '', true, false).draw();
+        const savedValues = JSON.parse(savedVal);
+        select.val(savedValues);
+        const searchString = savedValues.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|');
+        column.search(searchString, true, false).draw();
       }
     });
   }
@@ -275,10 +280,10 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
     const column = this;
     const select = $(".filters th").eq(column.index()).find("select");
     select.on("change",function(){
-      const val = $(this).val();
-      localStorage.setItem('filtroColuna'+column.index(), val);
-      const valRegex = $.fn.dataTable.util.escapeRegex(val);
-      column.search(valRegex ? '^'+valRegex+'$' : '', true, false).draw();
+      const selectedValues = $(this).val();
+      localStorage.setItem('filtroColuna'+column.index(), JSON.stringify(selectedValues));
+      const searchString = selectedValues.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|');
+      column.search(searchString, true, false).draw();
       atualizarFiltros();
     });
   });
