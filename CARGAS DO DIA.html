@@ -294,9 +294,25 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
     language:{search:"Buscar:", zeroRecords:"Nenhum registro encontrado", infoEmpty:"Nenhum dado disponível"},
     order: [[0, 'desc']]
   });
-  
-  renderizarGrafico(dataTable.rows().data().toArray());
 
+  // Função para aplicar os filtros salvos no localStorage
+  function aplicarFiltrosSalvos() {
+    dataTable.columns().every(function() {
+      const column = this;
+      const columnIndex = column.index();
+      const savedFilter = localStorage.getItem(`filtroColuna${columnIndex}`);
+      if (savedFilter) {
+        const savedValues = JSON.parse(savedFilter);
+        if (savedValues.length > 0) {
+          const searchString = savedValues.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|');
+          column.search(searchString, true, false);
+        }
+      }
+    });
+    dataTable.draw();
+  }
+
+  // Atualiza total de cargas
   function atualizarTotalCargas(){
     const total = dataTable.rows({search:'applied'}).data().length;
     document.getElementById("totalCargas").textContent = "Total de Cargas: "+total;
@@ -305,7 +321,6 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
       atualizarTotalCargas();
       renderizarGrafico(dataTable.rows({search:'applied'}).data().toArray());
   });
-  atualizarTotalCargas();
 
   $(".dataTables_wrapper").css("position","relative");
   $("#planilha_filter").append(`
@@ -331,8 +346,8 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
   $(document).on('click', '.filter-select', function() {
       const columnIndex = $(this).closest('th').index();
       const columnName = colunasDesejadas[columnIndex];
-      const allData = dataTable.rows().data().toArray();
-      const uniqueValues = [...new Set(allData.map(row => row[columnIndex]))].sort();
+      const filteredData = dataTable.rows({search:'applied'}).data().toArray();
+      const uniqueValues = [...new Set(filteredData.map(row => row[columnIndex]))].sort();
       
       const savedFilter = localStorage.getItem(`filtroColuna${columnIndex}`);
       const savedValues = savedFilter ? JSON.parse(savedFilter) : [];
@@ -395,8 +410,11 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
           column.search('').draw();
       }
       atualizarBotaoFiltro();
+      atualizarTotalCargas();
   }
   
+  // Executa as funções de atualização e aplicação de filtros após a tabela ser inicializada
+  aplicarFiltrosSalvos();
   atualizarBotaoFiltro();
 
 }});
