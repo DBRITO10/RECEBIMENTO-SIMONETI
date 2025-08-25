@@ -7,14 +7,12 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#CC0000">
 
-  <!-- iOS PWA support -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Recebimento Simonetti">
   <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
   <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
 
-  <!-- Libs -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
@@ -23,7 +21,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-  <!-- CSS DataTables -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
   <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.dataTables.min.css">
 
@@ -53,7 +50,11 @@
     tbody tr:nth-child(even) { background-color: #F2F2F2; }
     tbody tr:nth-child(odd) { background-color: #FFF; }
     td { padding: 8px 12px; border: 1px solid #CCC; white-space: nowrap; text-align: center; max-width: 150px; overflow: hidden; text-overflow: ellipsis; color: #000; }
-    .filter-select { width: 100%; padding: 6px; font-size: 13px; background: #E0F4FF; border: 1px solid #CCC; border-radius: 4px; color: #000; text-align: center; appearance: auto; }
+    .filter-select { width: 100%; padding: 6px; font-size: 13px; background: #E0F4FF; border: 1px solid #CCC; border-radius: 4px; color: #000; text-align: center; appearance: auto; cursor: pointer;}
+    .filter-select.applied {
+        background-color: #FFD700;
+        font-weight: bold;
+    }
     input.dataTables_filter input { color: #000 !important; background: #E0F4FF !important; border-radius: 4px; border: 1px solid #CCC; padding: 4px 8px; font-size: 14px; box-sizing: border-box; }
     table.dataTable th, table.dataTable td { min-width: 120px; text-align: center; }
     div.dataTables_wrapper { overflow-x: auto; position: relative; }
@@ -70,6 +71,41 @@
     #notaPopup h2 { margin-top: 0; color: #CC0000; }
     #notaPopup button { margin-top: 12px; padding: 6px 14px; border: none; background: #CC0000; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; }
     #notaPopup button:hover { background: #A80000; }
+    
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      max-height: 80%;
+      overflow-y: auto;
+      max-width: 90%;
+      min-width: 250px;
+    }
+    .modal-checkbox-list {
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-checkbox-list label {
+      margin: 5px 0;
+    }
+    .modal-title {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
@@ -122,6 +158,13 @@
   </tfoot>
 </table>
 
+<div id="filterModalOverlay" class="modal-overlay">
+    <div id="filterModalContent" class="modal-content">
+        <div id="modalTitle" class="modal-title"></div>
+        <div id="modalCheckboxList" class="modal-checkbox-list"></div>
+    </div>
+</div>
+
 <div id="notaOverlay"></div>
 <div id="notaPopup">
   <h2>Detalhes</h2>
@@ -147,15 +190,17 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
   const filterRow = document.querySelector("#planilha thead tr.filters");
   const tableBody = document.querySelector("#planilha tbody");
 
-  colunasDesejadas.forEach(col=>{
+  colunasDesejadas.forEach(col => {
     headerRow.innerHTML += `<th>${col}</th>`;
-    filterRow.innerHTML += `<th><select class="filter-select"><option value="">Filtrar / Limpar Filtro</option></select></th>`;
+    filterRow.innerHTML += `<th><button class="filter-select" data-column-name="${col}">Filtrar / Limpar Filtro</button></th>`;
   });
+  
+  document.querySelector("#planilha tfoot th").setAttribute("colspan", colunasDesejadas.length);
 
-  data.forEach(row=>{
+  data.forEach(row => {
     let rowHtml = "<tr>";
-    colunasDesejadas.forEach(col=>{
-      let valor = row[col]||"";
+    colunasDesejadas.forEach(col => {
+      let valor = row[col] || "";
       if(col==="NOTAS" && valor==="") valor="Sem nota";
       if(col==="NOTAS" || col==="CARGA/TRANSPORTE") rowHtml += `<td class="popup-cell" data-col="${col}" data-text="${valor}">${valor}</td>`;
       else rowHtml += `<td>${valor}</td>`;
@@ -179,46 +224,6 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
   table.on('draw', atualizarTotalCargas);
   atualizarTotalCargas();
 
-  // Função de filtros dependentes
-  function atualizarFiltros(){
-    table.columns().every(function(){
-      const column = this;
-      const select = $(".filters th").eq(column.index()).find("select");
-      let dataFiltrada = table.rows({search:'applied'}).data().toArray();
-      let valores = [...new Set(dataFiltrada.map(row=>row[column.index()]))].filter(v=>v);
-      valores.sort();
-      select.html('<option value="">Filtrar / Limpar Filtro</option>');
-      valores.forEach(v=>select.append(`<option value="${v}">${v}</option>`));
-    });
-
-    // Reaplica valores salvos do localStorage
-    table.columns().every(function(){
-      const column = this;
-      const select = $(".filters th").eq(column.index()).find("select");
-      const savedVal = localStorage.getItem('filtroColuna'+column.index());
-      if(savedVal){
-        select.val(savedVal);
-        const valRegex = $.fn.dataTable.util.escapeRegex(savedVal);
-        column.search(valRegex ? '^'+valRegex+'$' : '', true, false).draw();
-      }
-    });
-  }
-
-  // Configura eventos de filtro
-  table.columns().every(function(){
-    const column = this;
-    const select = $(".filters th").eq(column.index()).find("select");
-    select.on("change",function(){
-      const val = $(this).val();
-      localStorage.setItem('filtroColuna'+column.index(), val);
-      const valRegex = $.fn.dataTable.util.escapeRegex(val);
-      column.search(valRegex ? '^'+valRegex+'$' : '', true, false).draw();
-      atualizarFiltros();
-      atualizarTotalCargas();
-    });
-  });
-  atualizarFiltros();
-
   $(".dataTables_wrapper").css("position","relative");
   $("#planilha_filter").append(`
     <button id="btnShare">📤 Compartilhar</button>
@@ -238,6 +243,93 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
     if(type==="excel") exportExcel(table);
     shareMenu.style.display="none";
   });
+
+  // Lógica do Modal de Filtro
+  $(document).on('click', '.filter-select', function() {
+      const columnIndex = $(this).closest('th').index();
+      const columnName = colunasDesejadas[columnIndex];
+      const allData = table.rows().data().toArray();
+      const uniqueValues = [...new Set(allData.map(row => row[columnIndex]))].sort();
+      
+      const savedFilter = localStorage.getItem(`filtroColuna${columnIndex}`);
+      const savedValues = savedFilter ? JSON.parse(savedFilter) : [];
+      
+      let checkboxesHtml = '';
+      uniqueValues.forEach(value => {
+          if (value) {
+              const isChecked = savedValues.includes(value) ? 'checked' : '';
+              checkboxesHtml += `
+                  <label>
+                      <input type="checkbox" value="${value}" ${isChecked}> ${value}
+                  </label>
+              `;
+          }
+      });
+
+      $('#modalTitle').text(`Filtrar por ${columnName}`);
+      $('#modalCheckboxList').html(checkboxesHtml);
+      $('#filterModalOverlay').data('column-index', columnIndex).show();
+  });
+
+  $('#filterModalOverlay').on('click', function(e) {
+      if ($(e.target).is('#filterModalOverlay')) {
+          aplicarFiltroModal();
+          $(this).hide();
+      }
+  });
+
+  $('#filterModalContent').on('click', 'input[type="checkbox"]', function() {
+      aplicarFiltroModal();
+  });
+
+  function atualizarBotaoFiltro() {
+    colunasDesejadas.forEach((col, index) => {
+      const savedFilter = localStorage.getItem(`filtroColuna${index}`);
+      const selectedValues = savedFilter ? JSON.parse(savedFilter) : [];
+      const button = $(`.filter-select[data-column-name="${col}"]`);
+      if (selectedValues.length > 0) {
+        button.text("APLICADO").addClass("applied");
+      } else {
+        button.text("Filtrar / Limpar Filtro").removeClass("applied");
+      }
+    });
+  }
+
+  function aplicarFiltroModal() {
+      const columnIndex = $('#filterModalOverlay').data('column-index');
+      const selectedValues = $('#modalCheckboxList input:checked').map(function() {
+          return this.value;
+      }).get();
+      
+      localStorage.setItem(`filtroColuna${columnIndex}`, JSON.stringify(selectedValues));
+      
+      const searchString = selectedValues.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|');
+      
+      const column = table.column(columnIndex);
+      if (searchString) {
+          column.search(searchString, true, false).draw();
+      } else {
+          column.search('').draw();
+      }
+      atualizarBotaoFiltro();
+      atualizarTotalCargas();
+  }
+  
+  // Ao carregar a página, aplique os filtros salvos no localStorage
+  table.columns().every(function() {
+    const column = this;
+    const columnIndex = column.index();
+    const savedFilter = localStorage.getItem(`filtroColuna${columnIndex}`);
+    if (savedFilter) {
+      const savedValues = JSON.parse(savedFilter);
+      if (savedValues.length > 0) {
+        const searchString = savedValues.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|');
+        column.search(searchString, true, false);
+      }
+    }
+  });
+  table.draw();
+  atualizarBotaoFiltro();
 
 }});
 
