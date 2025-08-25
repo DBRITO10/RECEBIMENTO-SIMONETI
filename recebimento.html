@@ -177,6 +177,7 @@ const sheetID = "1LaYf3GKID_HdueUpZax7J_aco2-a1UVFBz1pZ4CkUGk";
 const gid = "0";
 const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`;
 const colunasDesejadas = ["SENHA","DATA","CENTRAL","CARGA/TRANSPORTE","NOTAS","STATUS DA CARGA","FORNECEDOR","TIPO DE PRODUTO"];
+let dataTable;
 
 Papa.parse(csvUrl, { download: true, header: true, complete: function (results) {
   const data = results.data;
@@ -209,7 +210,7 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
     tableBody.innerHTML += rowHtml;
   });
 
-  const table = $("#planilha").DataTable({
+  dataTable = $("#planilha").DataTable({
     paging:false, searching:true, info:false, scrollX:true, autoWidth:false,
     fixedHeader:{header:true, headerOffset:0},
     stateSave:true,
@@ -218,10 +219,10 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
 
   // Atualiza total de cargas
   function atualizarTotalCargas(){
-    const total = table.rows({search:'applied'}).data().length;
+    const total = dataTable.rows({search:'applied'}).data().length;
     document.getElementById("totalCargas").textContent = "Total de Cargas: "+total;
   }
-  table.on('draw', atualizarTotalCargas);
+  dataTable.on('draw', atualizarTotalCargas);
   atualizarTotalCargas();
 
   $(".dataTables_wrapper").css("position","relative");
@@ -239,8 +240,8 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
   document.addEventListener("click",(e)=>{ if(!shareBtn.contains(e.target) && !shareMenu.contains(e.target)) shareMenu.style.display="none"; });
   $(document).on("click",".share-option",function(){
     const type = $(this).data("type");
-    if(type==="pdf") exportPDF(table);
-    if(type==="excel") exportExcel(table);
+    if(type==="pdf") exportPDF(dataTable);
+    if(type==="excel") exportExcel(dataTable);
     shareMenu.style.display="none";
   });
 
@@ -248,8 +249,8 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
   $(document).on('click', '.filter-select', function() {
       const columnIndex = $(this).closest('th').index();
       const columnName = colunasDesejadas[columnIndex];
-      const allData = table.rows().data().toArray();
-      const uniqueValues = [...new Set(allData.map(row => row[columnIndex]))].sort();
+      const filteredData = dataTable.rows({search:'applied'}).data().toArray();
+      const uniqueValues = [...new Set(filteredData.map(row => row[columnIndex]))].sort();
       
       const savedFilter = localStorage.getItem(`filtroColuna${columnIndex}`);
       const savedValues = savedFilter ? JSON.parse(savedFilter) : [];
@@ -305,7 +306,7 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
       
       const searchString = selectedValues.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|');
       
-      const column = table.column(columnIndex);
+      const column = dataTable.column(columnIndex);
       if (searchString) {
           column.search(searchString, true, false).draw();
       } else {
