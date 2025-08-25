@@ -289,7 +289,9 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
       $('#filterModalOverlay').data('column-index', columnIndex).show();
   });
 
-  $('#filterModalOverlay').on('click', function(e) {
+  // Atualizado para fechar o modal com um clique ou toque
+  $('#filterModalOverlay').on('click touchstart', function(e) {
+      // Verifica se o clique/toque foi diretamente no overlay
       if ($(e.target).is('#filterModalOverlay')) {
           aplicarFiltroModal();
           $(this).hide();
