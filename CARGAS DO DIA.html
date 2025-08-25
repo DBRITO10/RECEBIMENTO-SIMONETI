@@ -369,7 +369,8 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
       $('#filterModalOverlay').data('column-index', columnIndex).show();
   });
 
-  $('#filterModalOverlay').on('click', function(e) {
+  // Alterado para reconhecer cliques e toques
+  $('#filterModalOverlay').on('click touchstart', function(e) {
       if ($(e.target).is('#filterModalOverlay')) {
           aplicarFiltroModal();
           $(this).hide();
