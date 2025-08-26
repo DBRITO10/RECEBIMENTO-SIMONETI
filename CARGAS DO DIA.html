@@ -1,189 +1,190 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <title>CARGAS DO DIA</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1E90FF">
+  <meta charset="UTF-8" />
+  <title>CARGAS DO DIA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1E90FF">
 
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Recebimento Simonetti">
-  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
-  <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="preto-translúcido">
+  <meta name="apple-mobile-web-app-title" content="Recebimento Simonetti">
+  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
+  <link rel="ícone de toque da maçã" tamanhos="512x512" href="icon-512.png">
 
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-  <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
-  <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.dataTables.min.css">
+  <link rel="folha de estilo" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+  <link rel="folha de estilo" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.dataTables.min.css">
 
-  <style>
-    body { background-color: #F0F8FF; font-family: Arial, sans-serif; color: #000; padding: 10px; margin: 0; box-sizing: border-box; }
-    h1 { 
-      margin-bottom: 16px; 
-      background-color: #1E90FF; 
-      padding: 10px; 
-      border-radius: 4px; 
-      font-size: 6vw; 
-      text-align: center; 
-      color: #fff; 
-    }
-    @media (min-width: 768px) { 
-      h1 { font-size: 28px; } 
-    }
-    table { width: 100%; font-size: 13px; border-collapse: collapse; }
-    thead tr th { 
-      background: #4682B4; 
-      color: #fff; 
-      padding: 8px; 
-      text-align: center; 
-      font-weight: bold; 
-      border: 1px solid #CCC; 
-    }
-    tbody tr:nth-child(even) { background-color: #E6F3FF; }
-    tbody tr:nth-child(odd) { background-color: #FFFFFF; }
-    td { padding: 8px 12px; border: 1px solid #CCC; white-space: nowrap; text-align: center; max-width: 150px; overflow: hidden; text-overflow: ellipsis; color: #000; }
-    .filter-select { width: 100%; padding: 6px; font-size: 13px; background: #B0E0E6; border: 1px solid #CCC; border-radius: 4px; color: #000; text-align: center; appearance: auto; cursor: pointer;}
-    .filter-select.applied {
-        background-color: #FFD700;
-        font-weight: bold;
-    }
-    input.dataTables_filter input { color: #000 !important; background: #B0E0E6 !important; border-radius: 4px; border: 1px solid #CCC; padding: 4px 8px; font-size: 14px; box-sizing: border-box; }
-    table.dataTable th, table.dataTable td { min-width: 120px; text-align: center; }
-    div.dataTables_wrapper { overflow-x: auto; position: relative; }
-    @media (max-width: 768px) { table.dataTable { display: block; width: max-content; } .filter-select { font-size: 14px; } td, th { font-size: 12px; } }
-    .dataTables_wrapper .dataTables_paginate .paginate_button { color: #1E90FF !important; background-color: #fff !important; border: 1px solid #CCC !important; border-radius: 4px; padding: 4px 8px; margin: 2px; font-weight: bold; }
-    .dataTables_wrapper .dataTables_paginate .paginate_button:hover { background-color: #f1f1f1 !important; color: #000 !important; }
-    #btnShare { background:#1E90FF; color:#fff; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; margin-left:10px; }
-    #btnShare:hover { background:#104E8B; }
-    #shareMenu { display:none; position:absolute; background:#fff; border:1px solid #ccc; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.2); z-index:3000; }
-    #shareMenu .share-option { padding:10px 14px; cursor:pointer; font-size:14px; background:#1E90FF; color:#fff; border-radius:4px; margin:4px; text-align:center; }
-    #shareMenu .share-option:hover { background:#104E8B; }
-    #notaOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; }
-    #notaPopup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color: #000; border-radius: 10px; padding: 20px; max-width: 90%; max-height: 70%; overflow-y: auto; z-index: 2100; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-    #notaPopup h2 { margin-top: 0; color: #1E90FF; }
-    #notaPopup button { margin-top: 12px; padding: 6px 14px; border: none; background: #1E90FF; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; }
-    #notaPopup button:hover { background: #104E8B; }
-    
-    .status-cell {
-      font-weight: bold;
-      color: white !important;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    }
-    .status-em-atraso { background-color: #F44336; }
-    .status-carga-recebida { background-color: #4CAF50; }
-    .status-em-recebimento { background-color: #FFC107; }
-    .status-no-patio { background-color: #03A9F4; }
-    .status-reagenda { background-color: #9C27B0; }
+  <style>
+    body { background-color: #F0F8FF; família de fontes: Arial, sans-serif; cor: # 000; preenchimento: 10px; margem: 0; tamanho da caixa: caixa de borda; }
+    h1 { 
+      margin-bottom: 16px; 
+      background-color: #1E90FF; 
+      padding: 10px; 
+      border-radius: 4px; 
+      font-size: 6vw; 
+      text-align: center; 
+      color: #fff; 
+    }
+    @media (min-width: 768px) { 
+      h1 { font-size: 28px; } 
+    }
+    table { width: 100%; font-size: 13px; border-collapse: collapse; }
+    thead tr th { 
+      background: #4682B4; 
+      color: #fff; 
+      padding: 8px; 
+      text-align: center; 
+      font-weight: bold; 
+      border: 1px solid #CCC; 
+    }
+    tbody tr:nth-child(even) { background-color: #E6F3FF; }
+    tbody tr:nth-child(odd) { background-color: #FFFFFF; }
+    td { padding: 8px 12px; border: 1px solid #CCC; white-space: nowrap; text-align: center; max-width: 150px; overflow: hidden; text-overflow: ellipsis; color: #000; }
+    .filter-select { width: 100%; padding: 6px; font-size: 13px; background: #B0E0E6; border: 1px solid #CCC; border-radius: 4px; color: #000; text-align: center; appearance: auto; cursor: pointer;}
+    .filter-select.applied {
+        background-color: #FFD700;
+        font-weight: bold;
+    }
+    input.dataTables_filter input { color: #000 !important; background: #B0E0E6 !important; border-radius: 4px; border: 1px solid #CCC; padding: 4px 8px; font-size: 14px; box-sizing: border-box; }
+    table.dataTable th, table.dataTable td { min-width: 120px; text-align: center; }
+    div.dataTables_wrapper { overflow-x: auto; position: relative; }
+    @media (max-width: 768px) { table.dataTable { display: block; width: max-content; } .filter-select { font-size: 14px; } td, th { font-size: 12px; } }
+    .dataTables_wrapper .dataTables_paginate .paginate_button { color: #1E90FF !important; background-color: #fff !important; border: 1px solid #CCC !important; border-radius: 4px; padding: 4px 8px; margin: 2px; font-weight: bold; }
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover { background-color: #f1f1f1 !important; color: #000 !important; }
+    #btnShare { background:#1E90FF; color:#fff; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; margin-left:10px; }
+    #btnShare:hover { background:#104E8B; }
+    #shareMenu { display:none; position:absolute; background:#fff; border:1px solid #ccc; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.2); z-index:3000; }
+    #shareMenu .share-option { padding:10px 14px; cursor:pointer; font-size:14px; background:#1E90FF; color:#fff; border-radius:4px; margin:4px; text-align:center; }
+    #shareMenu .share-option:hover { background:#104E8B; }
+    #notaOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; }
+    #notaPopup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color: #000; border-radius: 10px; padding: 20px; max-width: 90%; max-height: 70%; overflow-y: auto; z-index: 2100; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+    #notaPopup h2 { margin-top: 0; color: #1E90FF; }
+    #notaPopup button { margin-top: 12px; padding: 6px 14px; border: none; background: #1E90FF; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    #notaPopup button:hover { background: #104E8B; }
+    
+    .status-cell {
+      font-weight: bold;
+      color: white !important;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+    .status-em-atraso { background-color: #F44336; }
+    .status-carga-recebida { background-color: #4CAF50; }
+    .status-em-recebimento { background-color: #FFC107; }
+    .status-no-patio { background-color: #03A9F4; }
+    .status-reagenda { background-color: #9C27B0; }
+    .cargas-cell { cursor: pointer; color: #0000ff !important; text-decoration: underline; }
 
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 1000;
-      display: none;
-      justify-content: center;
-      align-items: center;
-    }
-    .modal-content {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-      max-height: 80%;
-      overflow-y: auto;
-    }
-    .modal-checkbox-list {
-      display: flex;
-      flex-direction: column;
-    }
-    .modal-checkbox-list label {
-      margin: 5px 0;
-    }
-    .modal-title {
-      font-size: 1.2em;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-  </style>
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      max-height: 80%;
+      overflow-y: auto;
+    }
+    .modal-checkbox-list {
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-checkbox-list label {
+      margin: 5px 0;
+    }
+    .modal-title {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
 <body>
 <script>
-  if (localStorage.getItem("isLoggedIn") !== "true") {
-    window.location.href = "login.html";
-  }
+  if (localStorage.getItem("isLoggedIn") !== "true") {
+    window.location.href = "login.html";
+  }
 </script>
 <div id="userBar" style="
-  background:#4682B4; 
-  padding:10px; 
-  display:flex; 
-  justify-content:space-between; 
-  align-items:center; 
-  border-radius:6px; 
-  margin-bottom:12px;
+  background:#4682B4; 
+  padding:10px; 
+  display:flex; 
+  justify-content:space-between; 
+  align-items:center; 
+  border-radius:6px; 
+  margin-bottom:12px;
 ">
-  <span id="welcomeUser" style="font-weight:bold; color:#fff;"></span>
-  <button onclick="logout()" style="
-    background:#4682B4;
-    color:white;
-    border:none;
-    padding:6px 12px;
-    border-radius:6px;
-    cursor:pointer;
-    font-weight:bold;
-  ">Sair</button>
+  <span id="welcomeUser" style="font-weight:bold; color:#fff;"></span>
+  <button onclick="logout()" style="
+    background:#4682B4;
+    color:white;
+    border:none;
+    padding:6px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
+  ">Sair</button>
 </div>
 <script>
-  const username = localStorage.getItem("username") || "Usuário";
-  document.addEventListener("DOMContentLoaded", ()=>{
-    document.getElementById("welcomeUser").textContent = "Bem-vindo, " + username;
-  });
-  function logout(){
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("username");
-    window.location.href = "login.html";
-  }
+  const username = localStorage.getItem("username") || "Usuário";
+  document.addEventListener("DOMContentLoaded", ()=>{
+    document.getElementById("welcomeUser").textContent = "Bem-vindo, " + username;
+  });
+  function logout(){
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("username");
+    window.location.href = "login.html";
+  }
 </script>
 
 <h1>CARGAS DO DIA</h1>
 <div style="width: 100%; max-width: 400px; margin: 20px auto;">
-  <canvas id="statusChart"></canvas>
+  <canvas id="statusChart"></canvas>
 </div>
 
 <table id="planilha" class="display nowrap">
-  <thead>
-    <tr class="headers"></tr>
-    <tr class="filters"></tr>
-  </thead>
-  <tbody></tbody>
-  <tfoot>
-    <tr><th colspan="7" style="text-align:right; font-weight:bold;" id="totalCargas">Total de Cargas: 0</th></tr>
-  </tfoot>
+  <thead>
+    <tr class="headers"></tr>
+    <tr class="filters"></tr>
+  </thead>
+  <tbody></tbody>
+  <tfoot>
+    <tr><th colspan="7" style="text-align:right; font-weight:bold;" id="totalCargas">Total de Cargas: 0</th></tr>
+  </tfoot>
 </table>
 
 <div id="filterModalOverlay" class="modal-overlay">
-    <div id="filterModalContent" class="modal-content">
-        <div id="modalTitle" class="modal-title"></div>
-        <div id="modalCheckboxList" class="modal-checkbox-list"></div>
-    </div>
+    <div id="filterModalContent" class="modal-content">
+        <div id="modalTitle" class="modal-title"></div>
+        <div id="modalCheckboxList" class="modal-checkbox-list"></div>
+    </div>
 </div>
 
 <div id="notaOverlay"></div>
 <div id="notaPopup">
-  <h2>Detalhes</h2>
-  <div id="notaConteudo"></div>
-  <button id="fecharPopup">Fechar</button>
+  <h2>Detalhes</h2>
+  <div id="notaConteudo"></div>
+  <button id="fecharPopup">Fechar</button>
 </div>
 
 <script>
@@ -192,252 +193,280 @@ const gid = "2090543957";
 const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`;
 const colunasDesejadas = ["ORDEM DE AGENDA","DATA","CENTRAL","CARGAS","STATUS","FORNECEDOR","TIPO DE PRODUTO"];
 const coresStatus = {
-    "CARGA RECEBIDA": '#4CAF50',
-    "EM RECEBIMENTO": '#FFC107',
-    "NO PATIO": '#03A9F4',
-    "EM ATRASO": '#F44336',
-    "REAGENDA": '#9C27B0'
+    "CARGA RECEBIDA": '#4CAF50',
+    "EM RECEBIMENTO": '#FFC107',
+    "NO PATIO": '#03A9F4',
+    "EM ATRASO": '#F44336',
+    "REAGENDA": '#9C27B0'
 };
 
 let myChart;
 let dataTable;
 
 function renderizarGrafico(data) {
-    const statusCounts = {};
-    const statusIndex = colunasDesejadas.indexOf("STATUS");
-    
-    data.forEach(row => {
-        const status = row[statusIndex];
-        if (status) {
-            statusCounts[status] = (statusCounts[status] || 0) + 1;
-        }
-    });
+    const statusCounts = {};
+    const statusIndex = colunasDesejadas.indexOf("STATUS");
+    
+    data.forEach(row => {
+        const status = row[statusIndex];
+        if (status) {
+            statusCounts[status] = (statusCounts[status] || 0) + 1;
+        }
+    });
 
-    const labels = Object.keys(statusCounts);
-    const chartData = Object.values(statusCounts);
-    const backgroundColors = labels.map(label => coresStatus[label] || '#808080');
+    const labels = Object.keys(statusCounts);
+    const chartData = Object.values(statusCounts);
+    const backgroundColors = labels.map(label => coresStatus[label] || '#808080');
 
-    if (myChart) {
-        myChart.destroy();
-    }
+    if (myChart) {
+        myChart.destroy();
+    }
 
-    const ctx = document.getElementById('statusChart').getContext('2d');
-    myChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: chartData,
-                backgroundColor: backgroundColors,
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(tooltipItem) {
-                            const total = tooltipItem.dataset.data.reduce((sum, current) => sum + current, 0);
-                            const value = tooltipItem.raw;
-                            const percentage = (value / total * 100).toFixed(1);
-                            return `${tooltipItem.label}: ${value} (${percentage}%)`;
-                        }
-                    }
-                }
-            }
-        }
-    });
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    myChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: chartData,
+                backgroundColor: backgroundColors,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            const total = tooltipItem.dataset.data.reduce((sum, current) => sum + current, 0);
+                            const value = tooltipItem.raw;
+                            const percentage = (value / total * 100).toFixed(1);
+                            return `${tooltipItem.label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
 }
 
 Papa.parse(csvUrl, { download: true, header: true, complete: function (results) {
-  const data = results.data;
-  if(!data.length || Object.keys(data[0]).length===0){ alert("Falha ao carregar dados."); return; }
+  const data = results.data;
+  if(!data.length || Object.keys(data[0]).length===0){ alert("Falha ao carregar dados."); return; }
 
-  results.meta.fields = results.meta.fields.map(f=>f.trim());
-  data.forEach(row=>{ Object.keys(row).forEach(k=>{ if(k!==k.trim()){ row[k.trim()]=row[k]; delete row[k]; } }); });
-  data.forEach(row=>{ colunasDesejadas.forEach(col=>{ if(row[col]) row[col]=row[col].trim(); }); });
+  results.meta.fields = results.meta.fields.map(f=>f.trim());
+  data.forEach(row=>{ Object.keys(row).forEach(k=>{ if(k!==k.trim()){ row[k.trim()]=row[k]; delete row[k]; } }); });
+  data.forEach(row=>{ colunasDesejadas.forEach(col=>{ if(row[col]) row[col]=row[col].trim(); }); });
 
-  const headerRow = document.querySelector("#planilha thead tr.headers");
-  const filterRow = document.querySelector("#planilha thead tr.filters");
-  const tableBody = document.querySelector("#planilha tbody");
-  const statusIndex = colunasDesejadas.indexOf("STATUS");
+  const headerRow = document.querySelector("#planilha thead tr.headers");
+  const filterRow = document.querySelector("#planilha thead tr.filters");
+  const tableBody = document.querySelector("#planilha tbody");
+  const statusIndex = colunasDesejadas.indexOf("STATUS");
 
-  colunasDesejadas.forEach(col => {
-    headerRow.innerHTML += `<th>${col}</th>`;
-    filterRow.innerHTML += `<th><button class="filter-select" data-column-name="${col}">Filtrar / Limpar Filtro</button></th>`;
-  });
-  
-  document.querySelector("#planilha tfoot th").setAttribute("colspan", colunasDesejadas.length);
+  colunasDesejadas.forEach(col => {
+    headerRow.innerHTML += `<th>${col}</th>`;
+    filterRow.innerHTML += `<th><button class="filter-select" data-column-name="${col}">Filtrar / Limpar Filtro</button></th>`;
+  });
+  
+  document.querySelector("#planilha tfoot th").setAttribute("colspan", colunasDesejadas.length);
 
-  data.forEach(row => {
-    let rowHtml = "<tr>";
-    colunasDesejadas.forEach((col, index) => {
-      let valor = row[col] || "";
-      let cellHtml = `<td>${valor}</td>`;
-      if (index === statusIndex) {
-        cellHtml = `<td class="status-cell" style="background-color: ${coresStatus[valor] || '#4682B4'};">${valor}</td>`;
-      }
-      rowHtml += cellHtml;
-    });
-    rowHtml += "</tr>";
-    tableBody.innerHTML += rowHtml;
-  });
+  data.forEach(row => {
+    let rowHtml = "<tr>";
+    colunasDesejadas.forEach((col, index) => {
+      let valor = row[col] || "";
+      let cellHtml = `<td>${valor}</td>`;
+      
+      if (col === "CARGAS") {
+        cellHtml = `<td class="cargas-cell" data-cargas-info="${valor}">${valor}</td>`;
+      } else if (index === statusIndex) {
+        cellHtml = `<td class="status-cell" style="background-color: ${coresStatus[valor] || '#4682B4'};">${valor}</td>`;
+      }
+      rowHtml += cellHtml;
+    });
+    rowHtml += "</tr>";
+    tableBody.innerHTML += rowHtml;
+  });
 
-  dataTable = $("#planilha").DataTable({
-    paging:false, searching:true, info:false, scrollX:true, autoWidth:false,
-    fixedHeader:{header:true, headerOffset:0},
-    stateSave:true,
-    language:{search:"Buscar:", zeroRecords:"Nenhum registro encontrado", infoEmpty:"Nenhum dado disponível"},
-    order: [[0, 'desc']]
-  });
+  dataTable = $("#planilha").DataTable({
+    paging:false, searching:true, info:false, scrollX:true, autoWidth:false,
+    fixedHeader:{header:true, headerOffset:0},
+    stateSave:true,
+    language:{search:"Buscar:", zeroRecords:"Nenhum registro encontrado", infoEmpty:"Nenhum dado disponível"},
+    order: [[0, 'desc']]
+  });
+  
+  // Adiciona evento de clique para a coluna CARGAS
+  $('#planilha').on('click', 'td.cargas-cell', function() {
+    const cell = $(this);
+    const cellContent = cell.data('cargas-info');
+    const row = dataTable.row(cell.closest('tr'));
+    const rowData = row.data();
 
-  // Função para aplicar os filtros salvos no localStorage
-  function aplicarFiltrosSalvos() {
-    dataTable.columns().every(function() {
-      const column = this;
-      const columnIndex = column.index();
-      const savedFilter = localStorage.getItem(`filtroColuna${columnIndex}`);
-      if (savedFilter) {
-        const savedValues = JSON.parse(savedFilter);
-        if (savedValues.length > 0) {
-          const searchString = savedValues.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|');
-          column.search(searchString, true, false);
-        }
-      }
-    });
-    dataTable.draw();
-  }
+    // Conteúdo formatado para o popup
+    let popupContent = '<h3>Informações da Carga</h3>';
+    popupContent += `<p><strong>Cargas:</strong> ${cellContent}</p>`;
+    popupContent += `<p><strong>Fornecedor:</strong> ${rowData[colunasDesejadas.indexOf('FORNECEDOR')]}</p>`;
+    popupContent += `<p><strong>Status:</strong> ${rowData[colunasDesejadas.indexOf('STATUS')]}</p>`;
 
-  // Atualiza total de cargas
-  function atualizarTotalCargas(){
-    const total = dataTable.rows({search:'applied'}).data().length;
-    document.getElementById("totalCargas").textContent = "Total de Cargas: "+total;
-  }
-  dataTable.on('draw', () => {
-      atualizarTotalCargas();
-      renderizarGrafico(dataTable.rows({search:'applied'}).data().toArray());
-  });
+    $('#notaConteudo').html(popupContent);
+    $('#notaPopup').show();
+    $('#notaOverlay').show();
+  });
+  
+  // Adiciona evento de clique para fechar o popup
+  $('#fecharPopup').on('click', function() {
+    $('#notaPopup').hide();
+    $('#notaOverlay').hide();
+  });
 
-  $(".dataTables_wrapper").css("position","relative");
-  $("#planilha_filter").append(`
-    <button id="btnShare">📤 Compartilhar</button>
-    <div id="shareMenu">
-      <div class="share-option" data-type="pdf">📄 Exportar PDF</div>
-      <div class="share-option" data-type="excel">📊 Exportar Excel</div>
-    </div>
-  `);
 
-  const shareBtn = document.getElementById("btnShare"); 
-  const shareMenu = document.getElementById("shareMenu");
-  shareBtn.addEventListener("click",()=>{ shareMenu.style.left=(shareBtn.offsetLeft)+"px"; shareMenu.style.top=(shareBtn.offsetTop + shareBtn.offsetHeight + 5)+"px"; shareMenu.style.display="block"; });
-  document.addEventListener("click",(e)=>{ if(!shareBtn.contains(e.target) && !shareMenu.contains(e.target)) shareMenu.style.display="none"; });
-  $(document).on("click",".share-option",function(){
-    const type = $(this).data("type");
-    if(type==="pdf") exportPDF(dataTable);
-    if(type==="excel") exportExcel(dataTable);
-    shareMenu.style.display="none";
-  });
+  // Função para aplicar os filtros salvos no localStorage
+  function aplicarFiltrosSalvos() {
+    dataTable.columns().every(function() {
+      const column = this;
+      const columnIndex = column.index();
+      const savedFilter = localStorage.getItem(`filtroColuna${columnIndex}`);
+      if (savedFilter) {
+        const savedValues = JSON.parse(savedFilter);
+        if (savedValues.length > 0) {
+          const searchString = savedValues.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|');
+          column.search(searchString, true, false);
+        }
+      }
+    });
+    dataTable.draw();
+  }
 
-  // Lógica do Modal de Filtro
-  $(document).on('click', '.filter-select', function() {
-      const columnIndex = $(this).closest('th').index();
-      const columnName = colunasDesejadas[columnIndex];
-      const filteredData = dataTable.rows({search:'applied'}).data().toArray();
-      const uniqueValues = [...new Set(filteredData.map(row => row[columnIndex]))].sort();
-      
-      const savedFilter = localStorage.getItem(`filtroColuna${columnIndex}`);
-      const savedValues = savedFilter ? JSON.parse(savedFilter) : [];
-      
-      let checkboxesHtml = '';
-      uniqueValues.forEach(value => {
-          if (value) {
-              const isChecked = savedValues.includes(value) ? 'checked' : '';
-              checkboxesHtml += `
-                  <label>
-                      <input type="checkbox" value="${value}" ${isChecked}> ${value}
-                  </label>
-              `;
-          }
-      });
+  // Atualiza total de cargas
+  function atualizarTotalCargas(){
+    const total = dataTable.rows({search:'applied'}).data().length;
+    document.getElementById("totalCargas").textContent = "Total de Cargas: "+total;
+  }
+  dataTable.on('draw', () => {
+      atualizarTotalCargas();
+      renderizarGrafico(dataTable.rows({search:'applied'}).data().toArray());
+  });
 
-      $('#modalTitle').text(`Filtrar por ${columnName}`);
-      $('#modalCheckboxList').html(checkboxesHtml);
-      $('#filterModalOverlay').data('column-index', columnIndex).show();
-  });
+  $(".dataTables_wrapper").css("position","relative");
+  $("#planilha_filter").append(`
+    <button id="btnShare">📤 Compartilhar</button>
+    <div id="shareMenu">
+      <div class="share-option" data-type="pdf">📄 Exportar PDF</div>
+      <div class="share-option" data-type="excel">📊 Exportar Excel</div>
+    </div>
+  `);
 
-  // Alterado para reconhecer cliques e toques
-  $('#filterModalOverlay').on('click touchstart', function(e) {
-      if ($(e.target).is('#filterModalOverlay')) {
-          aplicarFiltroModal();
-          $(this).hide();
-      }
-  });
+  const shareBtn = document.getElementById("btnShare"); 
+  const shareMenu = document.getElementById("shareMenu");
+  shareBtn.addEventListener("click",()=>{ shareMenu.style.left=(shareBtn.offsetLeft)+"px"; shareMenu.style.top=(shareBtn.offsetTop + shareBtn.offsetHeight + 5)+"px"; shareMenu.style.display="block"; });
+  document.addEventListener("click",(e)=>{ if(!shareBtn.contains(e.target) && !shareMenu.contains(e.target)) shareMenu.style.display="none"; });
+  $(document).on("click",".share-option",function(){
+    const type = $(this).data("type");
+    if(type==="pdf") exportPDF(dataTable);
+    if(type==="excel") exportExcel(dataTable);
+    shareMenu.style.display="none";
+  });
 
-  $('#filterModalContent').on('click', 'input[type="checkbox"]', function() {
-      aplicarFiltroModal();
-  });
-  
-  function atualizarBotaoFiltro() {
-    colunasDesejadas.forEach((col, index) => {
-      const savedFilter = localStorage.getItem(`filtroColuna${index}`);
-      const selectedValues = savedFilter ? JSON.parse(savedFilter) : [];
-      const button = $(`.filter-select[data-column-name="${col}"]`);
-      if (selectedValues.length > 0) {
-        button.text("APLICADO").addClass("applied");
-      } else {
-        button.text("Filtrar / Limpar Filtro").removeClass("applied");
-      }
-    });
-  }
+  // Lógica do Modal de Filtro
+  $(document).on('click', '.filter-select', function() {
+      const columnIndex = $(this).closest('th').index();
+      const columnName = colunasDesejadas[columnIndex];
+      const filteredData = dataTable.rows({search:'applied'}).data().toArray();
+      const uniqueValues = [...new Set(filteredData.map(row => row[columnIndex]))].sort();
+      
+      const savedFilter = localStorage.getItem(`filtroColuna${columnIndex}`);
+      const savedValues = savedFilter ? JSON.parse(savedFilter) : [];
+      
+      let checkboxesHtml = '';
+      uniqueValues.forEach(value => {
+          if (value) {
+              const isChecked = savedValues.includes(value) ? 'checked' : '';
+              checkboxesHtml += `
+                  <label>
+                      <input type="checkbox" value="${value}" ${isChecked}> ${value}
+                  </label>
+              `;
+          }
+      });
 
-  function aplicarFiltroModal() {
-      const columnIndex = $('#filterModalOverlay').data('column-index');
-      const selectedValues = $('#modalCheckboxList input:checked').map(function() {
-          return this.value;
-      }).get();
-      
-      localStorage.setItem(`filtroColuna${columnIndex}`, JSON.stringify(selectedValues));
-      
-      const searchString = selectedValues.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|');
-      
-      const column = dataTable.column(columnIndex);
-      if (searchString) {
-          column.search(searchString, true, false).draw();
-      } else {
-          column.search('').draw();
-      }
-      atualizarBotaoFiltro();
-      atualizarTotalCargas();
-  }
-  
-  // Executa as funções de atualização e aplicação de filtros após a tabela ser inicializada
-  aplicarFiltrosSalvos();
-  atualizarBotaoFiltro();
+      $('#modalTitle').text(`Filtrar por ${columnName}`);
+      $('#modalCheckboxList').html(checkboxesHtml);
+      $('#filterModalOverlay').data('column-index', columnIndex).show();
+  });
+
+  // Alterado para reconhecer cliques e toques
+  $('#filterModalOverlay').on('click touchstart', function(e) {
+      if ($(e.target).is('#filterModalOverlay')) {
+          aplicarFiltroModal();
+          $(this).hide();
+      }
+  });
+
+  $('#filterModalContent').on('click', 'input[type="checkbox"]', function() {
+      aplicarFiltroModal();
+  });
+  
+  function atualizarBotaoFiltro() {
+    colunasDesejadas.forEach((col, index) => {
+      const savedFilter = localStorage.getItem(`filtroColuna${index}`);
+      const selectedValues = savedFilter ? JSON.parse(savedFilter) : [];
+      const button = $(`.filter-select[data-column-name="${col}"]`);
+      if (selectedValues.length > 0) {
+        button.text("APLICADO").addClass("applied");
+      } else {
+        button.text("Filtrar / Limpar Filtro").removeClass("applied");
+      }
+    });
+  }
+
+  function aplicarFiltroModal() {
+      const columnIndex = $('#filterModalOverlay').data('column-index');
+      const selectedValues = $('#modalCheckboxList input:checked').map(function() {
+          return this.value;
+      }).get();
+      
+      localStorage.setItem(`filtroColuna${columnIndex}`, JSON.stringify(selectedValues));
+      
+      const searchString = selectedValues.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|');
+      
+      const column = dataTable.column(columnIndex);
+      if (searchString) {
+          column.search(searchString, true, false).draw();
+      } else {
+          column.search('').draw();
+      }
+      atualizarBotaoFiltro();
+      atualizarTotalCargas();
+  }
+  
+  // Executa as funções de atualização e aplicação de filtros após a tabela ser inicializada
+  aplicarFiltrosSalvos();
+  atualizarBotaoFiltro();
 
 }});
 
 // Export PDF/Excel
 function exportPDF(table){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({orientation:"landscape"});
-  const headers = colunasDesejadas;
-  const data = table.rows({search:"applied"}).data().toArray();
-  doc.autoTable({head:[headers], body:data, styles:{fontSize:8, cellPadding:2}});
-  doc.save("recebimento.pdf");
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({orientation:"landscape"});
+  const headers = colunasDesejadas;
+  const data = table.rows({search:"applied"}).data().toArray();
+  doc.autoTable({head:[headers], body:data, styles:{fontSize:8, cellPadding:2}});
+  doc.save("recebimento.pdf");
 }
 function exportExcel(table){
-  const headers = colunasDesejadas;
-  const data = table.rows({search:"applied"}).data().toArray();
-  const ws_data = [headers];
-  data.forEach(row=>ws_data.push([...row]));
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(ws_data);
-  XLSX.utils.book_append_sheet(wb,ws,"Recebimento");
-  XLSX.writeFile(wb,"recebimento.xlsx");
+  const headers = colunasDesejadas;
+  const data = table.rows({search:"applied"}).data().toArray();
+  const ws_data = [headers];
+  data.forEach(row=>ws_data.push([...row]));
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(ws_data);
+  XLSX.utils.book_append_sheet(wb,ws,"Recebimento");
+  XLSX.writeFile(wb,"recebimento.xlsx");
 }
 </script>
 </body>
