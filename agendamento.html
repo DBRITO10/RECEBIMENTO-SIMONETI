@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>RECEBIMENTO - MÓVEIS SIMONETTI</title>
+  <title>AGENDAMENTO - MÓVEIS SIMONETTI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#CC0000">
@@ -177,7 +177,7 @@
   }
 </script>
 
-<h1>RECEBIMENTO - MÓVEIS SIMONETTI</h1>
+<h1>AGENDAMENTO - MÓVEIS SIMONETTI</h1>
 <table id="planilha" class="display nowrap">
   <thead>
     <tr class="headers"></tr>
@@ -209,11 +209,16 @@
 </div>
 
 <script>
-const sheetID = "1LaYf3GKID_HdueUpZax7J_aco2-a1UVFBz1pZ4CkUGk";
-const gid = "0";
-const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`;
-const colunasDesejadas = ["SENHA","DATA","CENTRAL","CARGA/TRANSPORTE","NOTAS","STATUS DA CARGA","FORNECEDOR","TIPO DE PRODUTO"];
+const sheetID = "1Ore02M4GARvE6hldNDZmiVNDrABb4dgaZO7wlMY-fjs";
+const gidPinheiros = "0";
+const gidSerra = "353068485";
+const urls = [
+  `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gidPinheiros}`,
+  `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gidSerra}`
+];
+let allData = [];
 let dataTable;
+let colunas = ["SENHA DE AGENDAMENTO", "DATA", "CENTRAL", "CARGAS", "FORNECEDOR", "TIPO DE PRODUTO", "PRODUTO"];
 
 Papa.parse(csvUrl, { download: true, header: true, complete: function (results) {
   const data = results.data;
@@ -393,7 +398,7 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
   atualizarBotaoFiltro();
 }});
 
-// Popup para NOTAS e CARGA/TRANSPORTE
+// Popup para SENHA DE AGENDAMENTO e CARGAS
 $(document).on("click",".popup-cell",function(){
   const text = $(this).data("text");
   const col = $(this).data("col");
@@ -410,7 +415,7 @@ function exportPDF(table){
   const headers = colunasDesejadas;
   const data = table.rows({search:"applied"}).data().toArray();
   doc.autoTable({head:[headers], body:data, styles:{fontSize:8, cellPadding:2}, columnStyles:{4:{cellWidth:60, overflow:"linebreak"}}});
-  doc.save("recebimento.pdf");
+  doc.save("agendamento.pdf");
 }
 function exportExcel(table){
   const headers = colunasDesejadas;
@@ -420,7 +425,7 @@ function exportExcel(table){
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(ws_data);
   XLSX.utils.book_append_sheet(wb,ws,"Recebimento");
-  XLSX.writeFile(wb,"recebimento.xlsx");
+  XLSX.writeFile(wb,"agendamento.xlsx");
 }
 </script>
 </body>
