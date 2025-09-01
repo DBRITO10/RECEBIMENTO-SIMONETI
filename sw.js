@@ -9,6 +9,7 @@ const urlsToCache = [
   "./offline.html",
   "./manifest.json",
   "./icon-192.png",
+  "./first_login.html",
   "./icon-512.png",
   "./favicon.ico"
 ];

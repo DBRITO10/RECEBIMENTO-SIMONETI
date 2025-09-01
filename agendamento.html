@@ -31,60 +31,55 @@ h1 { color: #cc0000; font-size: 6vw; margin: 10px 0 20px 0; font-weight: bold; }
 @media (min-width: 768px) { h1 { font-size: 28px; } }
 .table-container { overflow-x: auto; border: 1px solid #ff9999; border-radius: 6px; margin-top: 10px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
 table { border-collapse: collapse; font-size: 13px; width: 100%; min-width: 900px; table-layout: fixed; }
-thead tr th { background: var(--cor-cabecalho); color: var(--cor-texto-cabecalho); padding: 6px 4px; text-align: center; font-weight: bold; white-space: nowrap; vertical-align: top; }
+thead th, thead td { 
+  background: var(--cor-cabecalho); 
+  color: var(--cor-texto-cabecalho); 
+  padding: 6px 4px; 
+  text-align: center; 
+  font-weight: bold; 
+  vertical-align: top;
+  position: relative;
+  overflow: visible !important;
+  border: 1px solid #ddd;
+}
+thead tr.filters th {
+  padding: 0;
+  border: 1px solid #ddd;
+}
 tbody tr:nth-child(even) { background-color: var(--cor-linha-par); }
 tbody tr:nth-child(odd) { background-color: var(--cor-linha-impar); }
-td, th { border: 1px solid #ddd; box-shadow: inset 0 0 2px rgba(0,0,0,0.05); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+td, th { 
+  border: 1px solid #ddd; 
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.05); 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  white-space: nowrap; 
+  text-align: center; 
+}
 td { padding: 8px 12px; border-bottom: 1px solid #eee; cursor: default; }
 
-/* Cabeçalho com filtro */
-.header-filter {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+/* Filtro */
+.filter-select {
   width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-}
-.header-filter span {
-  font-size: 12px;
-  font-weight: bold;
-  color: #fff;
-  text-align: center;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-.header-filter button.filter-select {
-  width: 100%;
-  min-width: 120px;
-  padding: 6px 10px;
+  padding: 6px;
   font-size: 13px;
-  border-radius: 6px;
-  border: 1px solid #cc0000;
   background: var(--cor-filtro);
+  border: 1px solid #cc0000;
   color: #333;
   text-align: center;
-  box-sizing: border-box;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
   appearance: none;
   -webkit-appearance: none;
   font-weight: bold;
+  cursor: pointer;
+  border-radius: 6px;
+  box-sizing: border-box;
 }
-.header-filter button.filter-select.applied {
+.filter-select.applied {
   background-color: #FFD700;
 }
-.header-filter button.filter-select:hover {
+.filter-select:hover {
   border-color: #a30000;
   background: #ffe5e5;
-}
-
-/* Apenas SENHA DE AGENDAMENTO com quebra de linha */
-thead th.senha-agendamento .header-filter span {
-  white-space: normal;
-  word-wrap: break-word;
 }
 
 /* Aumenta largura da coluna TIPO DE PRODUTO */
@@ -165,12 +160,43 @@ thead th.tipo-produto { min-width: 200px !important; }
   font-weight: bold;
   margin-bottom: 10px;
 }
+#modalButtons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+#modalButtons button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #fff;
+  flex-grow: 1;
+  margin: 0 5px;
+}
+#btnSelectAll {
+  background-color: #007bff;
+}
+#btnSelectNone {
+  background-color: #dc3545;
+}
+#btnApplyFilter {
+  background-color: #28a745;
+}
 
 /* Responsivo melhorado para botões e selects */
 @media (max-width: 768px) {
   .menu button { padding: 6px 10px; font-size: 13px; }
-  .header-filter button { padding: 6px; font-size: 13px; min-width: 100px; }
+  .filter-select { font-size: 13px; min-width: 100px; }
   h1 { font-size: 22px; }
+
+  /* Ajusta o cabeçalho para dispositivos móveis */
+  table.dataTable thead .sorting,
+  table.dataTable thead .sorting_asc,
+  table.dataTable thead .sorting_desc {
+      white-space: normal;
+  }
 }
 </style>
 </head>
@@ -181,7 +207,15 @@ if (localStorage.getItem("isLoggedIn") !== "true") { window.location.href = "log
 </script>
 
 <div id="userBar" style="background:#E6E6E6; padding:10px; display:flex; justify-content:space-between; align-items:center; border-radius:6px; margin-bottom:12px;">
-  <span id="welcomeUser" style="font-weight:bold; color:#333;"></span>
+  <button onclick="history.back()" style="
+    background: transparent; 
+    border: none; 
+    color: #333; 
+    font-size: 24px; 
+    cursor: pointer;
+    margin-right: 10px;
+  ">←</button>
+  <span id="welcomeUser" style="font-weight:bold; color:#333; flex-grow: 1;"></span>
   <button onclick="logout()" style="background:#CC0000; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold;">Sair</button>
 </div>
 <script>
@@ -192,6 +226,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
 function logout(){
   localStorage.removeItem("isLoggedIn");
   localStorage.removeItem("username");
+  window.history.replaceState(null, null, "login.html");
   window.location.href = "login.html";
 }
 </script>
@@ -210,7 +245,10 @@ function logout(){
 
 <div class="table-container">
   <table id="planilha" class="display nowrap">
-    <thead><tr></tr></thead>
+    <thead>
+      <tr class="headers"></tr>
+      <tr class="filters"></tr>
+    </thead>
     <tbody></tbody>
   </table>
 </div>
@@ -227,6 +265,11 @@ function logout(){
     <div id="filterModalContent" class="modal-content-filter">
         <div id="modalTitle" class="modal-title"></div>
         <div id="modalCheckboxList" class="modal-checkbox-list"></div>
+        <div id="modalButtons">
+            <button id="btnSelectAll">Marcar Todos</button>
+            <button id="btnSelectNone">Desmarcar Todos</button>
+            <button id="btnApplyFilter">Aplicar Filtro</button>
+        </div>
     </div>
 </div>
 
@@ -242,6 +285,17 @@ let allData = [];
 let dataTable;
 let colunas = ["SENHA DE AGENDAMENTO", "DATA", "CENTRAL", "CARGAS", "FORNECEDOR", "TIPO DE PRODUTO", "PRODUTO"];
 
+// Define a nova ordem de tipo de dados para datas no formato brasileiro (dd/mm/yyyy)
+$.fn.dataTable.ext.type.order['date-br-pre'] = function(data) {
+    if (!data) return 0;
+    const parts = data.split('/');
+    if (parts.length !== 3) return 0;
+    const d = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1; // Mês é zero-based
+    const y = parseInt(parts[2], 10);
+    return new Date(y, m, d).getTime();
+};
+
 function carregarDados(url, callback) {
   Papa.parse(url, { download:true, header:true, complete:function(results){
       const dadosFiltrados = results.data.filter(row => colunas.some(c => row[c] && row[c].trim() !== ""));
@@ -253,6 +307,14 @@ function carregarDados(url, callback) {
 function inicializarTabela() {
   if(allData.length===0) return;
   
+  const headerRow = document.querySelector("#planilha thead tr.headers");
+  const filterRow = document.querySelector("#planilha thead tr.filters");
+
+  colunas.forEach(col => {
+    headerRow.innerHTML += `<th>${col}</th>`;
+    filterRow.innerHTML += `<th><button class="filter-select" data-column-name="${col}">Filtrar / Limpar</button></th>`;
+  });
+
   dataTable = $("#planilha").DataTable({
     data: allData,
     columns: colunas.map(c => ({
@@ -274,7 +336,7 @@ function inicializarTabela() {
     autoWidth: false,
     columnDefs: [
       { targets: 0, width: "350px", className: "senha-agendamento" },
-      { targets: 1, width: "100px" },
+      { targets: 1, width: "100px", type: "date-br" },
       { targets: 2, width: "120px" },
       { targets: 3, width: "150px" },
       { targets: 4, width: "150px" },
@@ -296,17 +358,6 @@ function inicializarTabela() {
     },
     initComplete: function(){
       const api = this.api();
-      colunas.forEach((colName, i) => {
-        const $header = $(api.column(i).header()).empty();
-        $header.addClass(colName === "SENHA DE AGENDAMENTO" ? "senha-agendamento" : "");
-        $header.addClass(colName === "TIPO DE PRODUTO" ? "tipo-produto" : "");
-        $header.append(`
-          <div class="header-filter">
-            <span>${colName}</span>
-            <button class="filter-select" data-column-name="${colName}" data-column-index="${i}">Filtrar / Limpar</button>
-          </div>
-        `);
-      });
 
       function aplicarFiltrosSalvos() {
         api.columns().every(function() {
@@ -328,7 +379,7 @@ function inicializarTabela() {
         colunas.forEach((col, index) => {
           const savedFilter = localStorage.getItem(`agendamentoFiltroColuna${index}`);
           const selectedValues = savedFilter ? JSON.parse(savedFilter) : [];
-          const button = $(`.filter-select[data-column-index="${index}"]`);
+          const button = $(`.filter-select[data-column-name="${col}"]`);
           if (selectedValues.length > 0) {
             button.text("APLICADO").addClass("applied");
           } else {
@@ -358,8 +409,8 @@ function inicializarTabela() {
       
       // Lógica do Modal de Filtro
       $(document).on('click', '.filter-select', function() {
-        const columnIndex = $(this).data('column-index');
-        const columnName = $(this).data('column-name');
+        const columnIndex = $(this).closest('th').index();
+        const columnName = colunas[columnIndex];
         const filteredData = dataTable.rows({search:'applied'}).data().toArray();
         let uniqueValues = [...new Set(filteredData.map(row => row[columnName]))].filter(Boolean);
         
@@ -388,17 +439,36 @@ function inicializarTabela() {
         $('#filterModalOverlay').data('column-index', columnIndex).show();
       });
 
+      // Lógica para os novos botões do modal
+      $('#btnSelectAll').on('click', function() {
+          $('#modalCheckboxList input[type="checkbox"]').prop('checked', true);
+      });
+
+      // Modificação: Clicar em "Desmarcar Todos" também limpa o filtro e exibe tudo.
+      $('#btnSelectNone').on('click', function() {
+          const columnIndex = $('#filterModalOverlay').data('column-index');
+          localStorage.removeItem(`agendamentoFiltroColuna${columnIndex}`);
+          dataTable.column(columnIndex).search('').draw();
+          atualizarBotaoFiltro();
+          $('#filterModalOverlay').hide();
+      });
+
+      $('#btnApplyFilter').on('click', function() {
+          aplicarFiltroModal();
+          $('#filterModalOverlay').hide();
+      });
+
+      // Modificação: Clicar fora do modal também limpa o filtro e exibe tudo.
       $('#filterModalOverlay').on('click touchstart', function(e) {
         if ($(e.target).is('#filterModalOverlay')) {
-            aplicarFiltroModal();
+            const columnIndex = $(this).data('column-index');
+            localStorage.removeItem(`agendamentoFiltroColuna${columnIndex}`);
+            dataTable.column(columnIndex).search('').draw();
+            atualizarBotaoFiltro();
             $(this).hide();
         }
       });
       
-      $('#filterModalContent').on('change', 'input[type="checkbox"]', function() {
-        aplicarFiltroModal();
-      });
-
       aplicarFiltrosSalvos();
       atualizarBotaoFiltro();
       
@@ -426,7 +496,42 @@ function exportarPDF(){
   const dadosVisiveis = tabela.rows({ search: 'applied' }).data().toArray();
   const headers = colunas;
   const rows = dadosVisiveis.map(r => colunas.map(c => r[c] || ""));
-  doc.autoTable({ head: [headers], body: rows, startY: 20, styles: { fontSize: 9, cellPadding: 3, halign: 'center', valign: 'middle', overflow: 'linebreak' }});
+  
+  // Define a largura das colunas e a quebra de linha apenas para o conteúdo das células
+  doc.autoTable({ 
+    head: [headers], 
+    body: rows, 
+    startY: 20, 
+    styles: { 
+      fontSize: 9, 
+      cellPadding: 3, 
+      halign: 'center', 
+      valign: 'middle'
+    },
+    headStyles: {
+      overflow: 'visible',
+      fontStyle: 'bold',
+      halign: 'center',
+      valign: 'top',
+      fontSize: 9,
+      minCellHeight: 15,
+      cellWidth: 'auto',
+      overflow: 'visible'
+    },
+    bodyStyles: {
+      overflow: 'linebreak',
+    },
+    columnStyles: {
+      0: { cellWidth: 50 }, // SENHA DE AGENDAMENTO
+      1: { cellWidth: 30 }, // DATA
+      2: { cellWidth: 30 }, // CENTRAL
+      3: { cellWidth: 35 }, // CARGAS
+      4: { cellWidth: 35 }, // FORNECEDOR
+      5: { cellWidth: 50 }, // TIPO DE PRODUTO
+      6: { cellWidth: 40 } // PRODUTO
+    }
+  });
+  
   const dataHoje = new Date().toLocaleDateString('pt-BR');
   doc.save(`agendamento_${dataHoje}.pdf`);
 }

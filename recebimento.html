@@ -106,6 +106,28 @@
       font-weight: bold;
       margin-bottom: 10px;
     }
+    #modalButtons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+    }
+    #modalButtons button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #fff;
+    }
+    #btnSelectAll {
+      background-color: #007bff;
+    }
+    #btnSelectNone {
+      background-color: #dc3545;
+    }
+    #btnApplyFilter {
+      background-color: #28a745;
+    }
   </style>
 </head>
 <body>
@@ -123,7 +145,15 @@
   border-radius:6px; 
   margin-bottom:12px;
 ">
-  <span id="welcomeUser" style="font-weight:bold; color:#fff;"></span>
+  <button onclick="history.back()" style="
+    background: transparent; 
+    border: none; 
+    color: white; 
+    font-size: 24px; 
+    cursor: pointer;
+    margin-right: 10px;
+  ">←</button>
+  <span id="welcomeUser" style="font-weight:bold; color:#fff; flex-grow: 1;"></span>
   <button onclick="logout()" style="
     background:#808080;
     color:white;
@@ -142,6 +172,7 @@
   function logout(){
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("username");
+    window.history.replaceState(null, null, "login.html"); // Linha adicionada para corrigir o problema
     window.location.href = "login.html";
   }
 </script>
@@ -162,6 +193,11 @@
     <div id="filterModalContent" class="modal-content">
         <div id="modalTitle" class="modal-title"></div>
         <div id="modalCheckboxList" class="modal-checkbox-list"></div>
+        <div id="modalButtons">
+            <button id="btnSelectAll">Marcar Todos</button>
+            <button id="btnSelectNone">Desmarcar Todos</button>
+            <button id="btnApplyFilter">Aplicar Filtro</button>
+        </div>
     </div>
 </div>
 
@@ -289,17 +325,23 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
       $('#filterModalOverlay').data('column-index', columnIndex).show();
   });
 
-  // Atualizado para fechar o modal com um clique ou toque
-  $('#filterModalOverlay').on('click touchstart', function(e) {
-      // Verifica se o clique/toque foi diretamente no overlay
-      if ($(e.target).is('#filterModalOverlay')) {
-          aplicarFiltroModal();
-          $(this).hide();
-      }
+  // Lógica para os novos botões do modal
+  $('#btnSelectAll').on('click', function() {
+      $('#modalCheckboxList input[type="checkbox"]').prop('checked', true);
+  });
+  
+  // Modificação: Clicar em "Desmarcar Todos" também limpa o filtro e exibe tudo.
+  $('#btnSelectNone').on('click', function() {
+      const columnIndex = $('#filterModalOverlay').data('column-index');
+      localStorage.removeItem(`filtroColuna${columnIndex}`);
+      dataTable.column(columnIndex).search('').draw();
+      atualizarBotaoFiltro();
+      $('#filterModalOverlay').hide();
   });
 
-  $('#filterModalContent').on('click', 'input[type="checkbox"]', function() {
+  $('#btnApplyFilter').on('click', function() {
       aplicarFiltroModal();
+      $('#filterModalOverlay').hide();
   });
   
   function atualizarBotaoFiltro() {
@@ -335,6 +377,17 @@ Papa.parse(csvUrl, { download: true, header: true, complete: function (results) 
       atualizarTotalCargas();
   }
 
+  // Modificação: Clicar fora do modal também limpa o filtro e exibe tudo.
+  $('#filterModalOverlay').on('click touchstart', function(e) {
+      if ($(e.target).is('#filterModalOverlay')) {
+          const columnIndex = $(this).data('column-index');
+          localStorage.removeItem(`filtroColuna${columnIndex}`);
+          dataTable.column(columnIndex).search('').draw();
+          atualizarBotaoFiltro();
+          $(this).hide();
+      }
+  });
+  
   // Executa as funções de atualização e aplicação de filtros após a tabela ser inicializada
   aplicarFiltrosSalvos();
   atualizarBotaoFiltro();
