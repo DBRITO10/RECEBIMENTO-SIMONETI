@@ -8,10 +8,13 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/scroller/2.2.5/js/dataTables.scroller.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<script type="module" src="./firebase-config.js"></script>
+<script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+<script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
 <link rel="stylesheet" href="https://cdn.datatables.net/scroller/2.2.5/css/scroller.dataTables.min.css"/>
@@ -274,14 +277,10 @@ function logout(){
 </div>
 
 <script>
-const sheetID = "1Ore02M4GARvE6hldNDZmiVNDrABb4dgaZO7wlMY-fjs";
-const gidPinheiros = "0";
-const gidSerra = "353068485";
-const urls = [
-  `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gidPinheiros}`,
-  `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gidSerra}`
-];
-let allData = [];
+// A nova lógica para ler dados do Firebase Firestore
+import { db } from "./firebase-config.js";
+import { collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 let dataTable;
 let colunas = ["SENHA DE AGENDAMENTO", "DATA", "CENTRAL", "CARGAS", "FORNECEDOR", "TIPO DE PRODUTO", "PRODUTO"];
 
@@ -296,17 +295,7 @@ $.fn.dataTable.ext.type.order['date-br-pre'] = function(data) {
     return new Date(y, m, d).getTime();
 };
 
-function carregarDados(url, callback) {
-  Papa.parse(url, { download:true, header:true, complete:function(results){
-      const dadosFiltrados = results.data.filter(row => colunas.some(c => row[c] && row[c].trim() !== ""));
-      allData = allData.concat(dadosFiltrados);
-      callback();
-  }});
-}
-
 function inicializarTabela() {
-  if(allData.length===0) return;
-  
   const headerRow = document.querySelector("#planilha thead tr.headers");
   const filterRow = document.querySelector("#planilha thead tr.filters");
 
@@ -316,7 +305,7 @@ function inicializarTabela() {
   });
 
   dataTable = $("#planilha").DataTable({
-    data: allData,
+    data: [], // Começa com dados vazios, eles serão carregados pelo Firestore
     columns: colunas.map(c => ({
       data: c,
       render: function(data, type, row, meta){
@@ -487,7 +476,37 @@ function inicializarTabela() {
   });
 }
 
-carregarDados(urls[0], function(){ carregarDados(urls[1], inicializarTabela); });
+// Inicia o carregamento dos dados
+$(document).ready(function() {
+  const agendamentosRef = collection(db, "agendamentos");
+  const q = query(agendamentosRef, orderBy("data"));
+
+  onSnapshot(q, (snapshot) => {
+    const data = snapshot.docs.map(doc => {
+      const dados = doc.data();
+      return {
+        "SENHA DE AGENDAMENTO": dados.senha || "",
+        "DATA": dados.data || "",
+        "CENTRAL": dados.central || "",
+        "CARGAS": dados.cargas || "",
+        "FORNECEDOR": dados.fornecedor || "",
+        "TIPO DE PRODUTO": dados.tipoDeProduto || "",
+        "PRODUTO": dados.produto || ""
+      };
+    });
+    
+    // Destruir a tabela existente e recriar com os novos dados
+    if ($.fn.DataTable.isDataTable('#planilha')) {
+      dataTable.destroy();
+      $('#planilha tbody').empty();
+      $('#planilha thead tr').empty();
+    }
+    
+    // Repopula o cabeçalho e inicializa a tabela
+    inicializarTabela();
+    dataTable.clear().rows.add(data).draw();
+  });
+});
 
 function exportarPDF(){
   const { jsPDF } = window.jspdf;
