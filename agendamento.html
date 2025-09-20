@@ -1,573 +1,300 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8" />
-<title>AGENDAMENTO - MÓVEIS SIMONETTI</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8" />
+    <title>AGENDAMENTO - MÓVEIS SIMONETTI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/scroller/2.2.5/js/dataTables.scroller.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/scroller/2.2.5/js/dataTables.scroller.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
-<script type="module" src="./firebase-config.js"></script>
-<script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
-<script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+    <script type="module" src="./firebase-config.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
 
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
-<link rel="stylesheet" href="https://cdn.datatables.net/scroller/2.2.5/css/scroller.dataTables.min.css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/scroller/2.2.5/css/scroller.dataTables.min.css" />
 
-<style>
-:root {
-  --cor-fundo-dashboard: #fafafa;
-  --cor-cabecalho: linear-gradient(90deg, #ff6666, #cc0000);
-  --cor-texto-cabecalho: #ffffff;
-  --cor-linha-par: #ffe5e5;
-  --cor-linha-impar: #fff5f5;
-  --cor-filtro: linear-gradient(90deg, #fff5f5, #ffe5e5);
-}
-body { font-family: 'Segoe UI', sans-serif; background-color: var(--cor-fundo-dashboard); color: #333; padding: 10px; margin: 0; }
-header { text-align: center; margin-bottom: 20px; }
-h1 { color: #cc0000; font-size: 6vw; margin: 10px 0 20px 0; font-weight: bold; }
-@media (min-width: 768px) { h1 { font-size: 28px; } }
-.table-container { overflow-x: auto; border: 1px solid #ff9999; border-radius: 6px; margin-top: 10px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-table { border-collapse: collapse; font-size: 13px; width: 100%; min-width: 900px; table-layout: fixed; }
-thead th, thead td { 
-  background: var(--cor-cabecalho); 
-  color: var(--cor-texto-cabecalho); 
-  padding: 6px 4px; 
-  text-align: center; 
-  font-weight: bold; 
-  vertical-align: top;
-  position: relative;
-  overflow: visible !important;
-  border: 1px solid #ddd;
-}
-thead tr.filters th {
-  padding: 0;
-  border: 1px solid #ddd;
-}
-tbody tr:nth-child(even) { background-color: var(--cor-linha-par); }
-tbody tr:nth-child(odd) { background-color: var(--cor-linha-impar); }
-td, th { 
-  border: 1px solid #ddd; 
-  box-shadow: inset 0 0 2px rgba(0,0,0,0.05); 
-  overflow: hidden; 
-  text-overflow: ellipsis; 
-  white-space: nowrap; 
-  text-align: center; 
-}
-td { padding: 8px 12px; border-bottom: 1px solid #eee; cursor: default; }
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #fafafa; }
+        header { text-align: center; margin-bottom: 20px; }
+        h1 { color: #cc0000; font-size: 28px; margin: 10px 0 20px 0; font-weight: bold; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        thead th { background: #cc0000; color: white; position: relative; }
+        #exportButtons { margin-bottom: 15px; }
+        #exportButtons button { 
+            display: inline-block; 
+            width: auto; 
+            margin-right: 10px; 
+            padding: 10px 20px; 
+            background: #d32f2f; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #exportButtons button:hover { background: #b71c1c; }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .wrap-text {
+            white-space: normal;
+        }
 
-/* Filtro */
-.filter-select {
-  width: 100%;
-  padding: 6px;
-  font-size: 13px;
-  background: var(--cor-filtro);
-  border: 1px solid #cc0000;
-  color: #333;
-  text-align: center;
-  appearance: none;
-  -webkit-appearance: none;
-  font-weight: bold;
-  cursor: pointer;
-  border-radius: 6px;
-  box-sizing: border-box;
-}
-.filter-select.applied {
-  background-color: #FFD700;
-}
-.filter-select:hover {
-  border-color: #a30000;
-  background: #ffe5e5;
-}
+        .table-mesa {
+            background-color: #d1e7dd !important; 
+        }
+        .table-roupeiro {
+            background-color: #fff3cd !important; 
+        }
+        .table-celular, .table-tablet {
+            background-color: #cce5ff !important; 
+        }
+        .table-armario, .table-cozinha {
+            background-color: #fff3cd !important;
+        }
 
-/* Aumenta largura da coluna TIPO DE PRODUTO */
-thead th.tipo-produto { min-width: 200px !important; }
+        .tipo-produto-cell {
+            background-color: inherit;
+        }
+        .tipo-produto-cell.table-mesa {
+            background-color: #d1e7dd !important;
+        }
+        .tipo-produto-cell.table-roupeiro {
+            background-color: #fff3cd !important;
+        }
+        .tipo-produto-cell.table-celular, .tipo-produto-cell.table-tablet {
+            background-color: #cce5ff !important;
+        }
+        .tipo-produto-cell.table-armario, .tipo-produto-cell.table-cozinha {
+            background-color: #fff3cd !important;
+        }
 
-/* Menu compartilhar */
-.menu { position: relative; display: inline-block; margin-bottom: 10px; }
-.menu button { background: #cc0000; color: #fff; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 14px; transition: background 0.3s; }
-.menu button:hover { background: #a30000; }
-.menu-content { display: none; position: absolute; background: #fff; color: #333; box-shadow: 0px 4px 8px rgba(0,0,0,0.1); z-index: 1; min-width: 150px; border-radius: 4px; }
-.menu-content a { display: block; padding: 10px; text-decoration: none; color: #333; font-size: 14px; }
-.menu-content a:hover { background: #fbeaea; }
-.menu:hover .menu-content { display: block; }
-
-/* Modal popup */
-#modalCarga {
-  display:none;
-  position:fixed;
-  top:0; left:0; right:0; bottom:0;
-  background:rgba(0,0,0,0.5);
-  z-index:9999;
-  justify-content:center;
-  align-items:center;
-}
-#modalCarga .modal-content {
-  background:#fff;
-  padding:20px;
-  border-radius:8px;
-  max-width:400px;
-  width:90%;
-  text-align:center;
-  position:relative;
-  box-shadow:0 4px 12px rgba(0,0,0,0.3);
-}
-#modalCarga .modal-content h2 { color:#cc0000; margin-bottom:10px; }
-#modalCarga .modal-content p { font-size:14px; word-break:break-word; }
-.close-modal {
-  position:absolute;
-  top:10px;
-  right:15px;
-  cursor:pointer;
-  font-weight:bold;
-  font-size:18px;
-}
-
-/* Novo Modal para os Filtros */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  z-index: 1000;
-  display: none;
-  justify-content: center;
-  align-items: center;
-}
-.modal-content-filter {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-  max-height: 80%;
-  overflow-y: auto;
-  max-width: 90%;
-  min-width: 250px;
-}
-.modal-checkbox-list {
-  display: flex;
-  flex-direction: column;
-}
-.modal-checkbox-list label {
-  margin: 5px 0;
-}
-.modal-title {
-  font-size: 1.2em;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-#modalButtons {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 15px;
-}
-#modalButtons button {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  color: #fff;
-  flex-grow: 1;
-  margin: 0 5px;
-}
-#btnSelectAll {
-  background-color: #007bff;
-}
-#btnSelectNone {
-  background-color: #dc3545;
-}
-#btnApplyFilter {
-  background-color: #28a745;
-}
-
-/* Responsivo melhorado para botões e selects */
-@media (max-width: 768px) {
-  .menu button { padding: 6px 10px; font-size: 13px; }
-  .filter-select { font-size: 13px; min-width: 100px; }
-  h1 { font-size: 22px; }
-
-  /* Ajusta o cabeçalho para dispositivos móveis */
-  table.dataTable thead .sorting,
-  table.dataTable thead .sorting_asc,
-  table.dataTable thead .sorting_desc {
-      white-space: normal;
-  }
-}
-</style>
+    </style>
 </head>
 <body>
 
-<script>
-if (localStorage.getItem("isLoggedIn") !== "true") { window.location.href = "login.html"; }
-</script>
-
-<div id="userBar" style="background:#E6E6E6; padding:10px; display:flex; justify-content:space-between; align-items:center; border-radius:6px; margin-bottom:12px;">
-  <button onclick="history.back()" style="
-    background: transparent; 
-    border: none; 
-    color: #333; 
-    font-size: 24px; 
-    cursor: pointer;
-    margin-right: 10px;
-  ">←</button>
-  <span id="welcomeUser" style="font-weight:bold; color:#333; flex-grow: 1;"></span>
-  <button onclick="logout()" style="background:#CC0000; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold;">Sair</button>
-</div>
-<script>
-const username = localStorage.getItem("username") || "Usuário";
-document.addEventListener("DOMContentLoaded", ()=>{
-  document.getElementById("welcomeUser").textContent = "Bem-vindo, " + username;
-});
-function logout(){
-  localStorage.removeItem("isLoggedIn");
-  localStorage.removeItem("username");
-  window.history.replaceState(null, null, "login.html");
-  window.location.href = "login.html";
-}
-</script>
-
 <header>
-  <h1>AGENDAMENTO - MÓVEIS SIMONETTI</h1>
+    <h1>Agendamentos de Cargas - Móveis Simonetti</h1>
 </header>
-
-<div class="menu">
-  <button>📤 Compartilhar</button>
-  <div class="menu-content">
-    <a href="#" onclick="exportarPDF()">Exportar PDF</a>
-    <a href="#" onclick="exportarExcel()">Exportar Excel</a>
-  </div>
-</div>
-
+  
 <div class="table-container">
-  <table id="planilha" class="display nowrap">
-    <thead>
-      <tr class="headers"></tr>
-      <tr class="filters"></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
-
-<div id="modalCarga">
-  <div class="modal-content">
-    <span class="close-modal">×</span>
-    <h2>Detalhes</h2>
-    <p id="conteudoCarga"></p>
-  </div>
-</div>
-
-<div id="filterModalOverlay" class="modal-overlay">
-    <div id="filterModalContent" class="modal-content-filter">
-        <div id="modalTitle" class="modal-title"></div>
-        <div id="modalCheckboxList" class="modal-checkbox-list"></div>
-        <div id="modalButtons">
-            <button id="btnSelectAll">Marcar Todos</button>
-            <button id="btnSelectNone">Desmarcar Todos</button>
-            <button id="btnApplyFilter">Aplicar Filtro</button>
-        </div>
+    <div id="exportButtons">
+        <button onclick="exportarExcel()">Exportar Excel</button>
+        <button onclick="exportarPDF()">Exportar PDF</button>
+        <button onclick="window.location.href='gerenciamento.html'">Voltar ao Gerenciamento</button>
     </div>
+
+    <table id="agendamentosTabela" class="display" style="width:100%">
+        <thead>
+            <tr>
+                <th>Senha</th>
+                <th>Data</th>
+                <th>Central</th>
+                <th>Cargas</th>
+                <th>Pedido de Compra</th>
+                <th>Fornecedor</th>
+                <th>Tipo de Produto</th>
+                <th>Produto</th>
+                <th>Volumes</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
 </div>
 
-<script>
-// A nova lógica para ler dados do Firebase Firestore
-import { db } from "./firebase-config.js";
-import { collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<footer>
+    <p>Total de Registros: <span id="totalCargas">0</span></p>
+</footer>
 
-let dataTable;
-let colunas = ["SENHA DE AGENDAMENTO", "DATA", "CENTRAL", "CARGAS", "FORNECEDOR", "TIPO DE PRODUTO", "PRODUTO"];
+<script type="module">
+    import { db } from "./firebase-config.js";
+    import { collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// Define a nova ordem de tipo de dados para datas no formato brasileiro (dd/mm/yyyy)
-$.fn.dataTable.ext.type.order['date-br-pre'] = function(data) {
-    if (!data) return 0;
-    const parts = data.split('/');
-    if (parts.length !== 3) return 0;
-    const d = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10) - 1; // Mês é zero-based
-    const y = parseInt(parts[2], 10);
-    return new Date(y, m, d).getTime();
-};
+    let dataTable = null;
 
-function inicializarTabela() {
-  const headerRow = document.querySelector("#planilha thead tr.headers");
-  const filterRow = document.querySelector("#planilha thead tr.filters");
+    function formatarData(data) {
+        if (!data) return "Não definida";
+        const [ano, mes, dia] = data.split('-');
+        return `${dia}/${mes}/${ano}`;
+    }
 
-  colunas.forEach(col => {
-    headerRow.innerHTML += `<th>${col}</th>`;
-    filterRow.innerHTML += `<th><button class="filter-select" data-column-name="${col}">Filtrar / Limpar</button></th>`;
-  });
-
-  dataTable = $("#planilha").DataTable({
-    data: [], // Começa com dados vazios, eles serão carregados pelo Firestore
-    columns: colunas.map(c => ({
-      data: c,
-      render: function(data, type, row, meta){
-        if(c === "CARGAS" || c === "SENHA DE AGENDAMENTO"){
-          return `<span class="popup-cell" data-col="${c}" style="color:#000;cursor:pointer;" title="Clique para detalhes">${data}</span>`;
+    function getClassForTipoProduto(tipo) {
+        if (!tipo) return '';
+        const tipoLimpo = tipo.toLowerCase().trim();
+        switch (tipoLimpo) {
+            case 'mesa':
+                return 'table-mesa';
+            case 'roupeiro':
+                return 'table-roupeiro';
+            case 'celular':
+            case 'tablet':
+                return 'table-celular';
+            case 'armário':
+            case 'cozinha':
+                return 'table-armario';
+            default:
+                return '';
         }
-        return data;
-      }
-    })),
-    deferRender: true,
-    scrollX: true,
-    scroller: true,
-    paging: true,
-    pageLength: 50,
-    lengthMenu: [25,50,100,200],
-    searching: true,
-    autoWidth: false,
-    columnDefs: [
-      { targets: 0, width: "350px", className: "senha-agendamento" },
-      { targets: 1, width: "100px", type: "date-br" },
-      { targets: 2, width: "120px" },
-      { targets: 3, width: "150px" },
-      { targets: 4, width: "150px" },
-      { targets: 5, width: "220px", className: "tipo-produto" },
-      { targets: 6, width: "180px" }
-    ],
-    language: { 
-      decimal: ",",
-      thousands: ".",
-      search: "🔍 Buscar:",
-      zeroRecords: "Nenhum registro encontrado",
-      info: "Mostrando de _START_ até _END_ de _TOTAL_ registros",
-      infoEmpty: "Mostrando 0 até 0 de 0 registros",
-      infoFiltered: "(filtrado de _MAX_ registros no total)",
-      lengthMenu: "Mostrar _MENU_ registros por página",
-      loadingRecords: "Carregando...",
-      processing: "Processando...",
-      paginate: { first: "Primeiro", previous: "Anterior", next: "Próximo", last: "Último" }
-    },
-    initComplete: function(){
-      const api = this.api();
+    }
 
-      function aplicarFiltrosSalvos() {
-        api.columns().every(function() {
-          const column = this;
-          const columnIndex = column.index();
-          const savedFilter = localStorage.getItem(`agendamentoFiltroColuna${columnIndex}`);
-          if (savedFilter) {
-            const savedValues = JSON.parse(savedFilter);
-            if (savedValues.length > 0) {
-              const searchString = savedValues.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|');
-              column.search(searchString, true, false);
+    function carregarAgendamentos() {
+        const q = query(collection(db, "agendamentos"), orderBy("data", "asc"), orderBy("senha", "asc"));
+        onSnapshot(q, (snapshot) => {
+            if (dataTable) {
+                dataTable.destroy();
             }
-          }
+
+            const dadosParaTabela = [];
+            snapshot.forEach(doc => {
+                const agendamento = doc.data();
+                const formattedCargas = agendamento.cargas ? agendamento.cargas.replace(/ /g, '<br>') : "Não definido";
+                const formattedPedidoCompra = agendamento.pedidoCompra ? agendamento.pedidoCompra.replace(/ /g, '<br>') : "Não definido";
+                
+                dadosParaTabela.push([
+                    agendamento.senha || "Não Definida",
+                    formatarData(agendamento.data),
+                    agendamento.central || "Não definido",
+                    formattedCargas,
+                    formattedPedidoCompra,
+                    agendamento.fornecedor || "Não definido",
+                    `<div class="tipo-produto-cell ${getClassForTipoProduto(agendamento.tipoDeProduto)}">${agendamento.tipoDeProduto || "Não definido"}</div>`,
+                    agendamento.produto || "Não definido",
+                    agendamento.volumes || "Não definido"
+                ]);
+            });
+
+            dataTable = $('#agendamentosTabela').DataTable({
+                data: dadosParaTabela,
+                columns: [
+                    { title: "Senha" },
+                    { title: "Data" },
+                    { title: "Central" },
+                    { title: "Cargas", className: "wrap-text" },
+                    { title: "Pedido de Compra", className: "wrap-text" },
+                    { title: "Fornecedor" },
+                    { title: "Tipo de Produto" },
+                    { title: "Produto" },
+                    { title: "Volumes" }
+                ],
+                paging: true,
+                pageLength: 25,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+                info: true,
+                order: [[1, 'asc']],
+                oLanguage: {
+                    sEmptyTable: "Nenhum agendamento encontrado.",
+                    sSearch: "Buscar:",
+                    sLengthMenu: "Mostrar _MENU_ registros por página",
+                    sInfo: "Mostrando de _START_ até _END_ de _TOTAL_ registros",
+                    sInfoEmpty: "Mostrando 0 até 0 de 0 registros"
+                },
+                initComplete: function () {
+                    const filteredRowsCount = dataTable.rows({ search: 'applied' }).count();
+                    document.getElementById("totalCargas").textContent = filteredRowsCount;
+                }
+            });
+
+            dataTable.on('draw.dt', function () {
+                const filteredRowsCount = dataTable.rows({search: 'applied'}).count();
+                document.getElementById("totalCargas").textContent = filteredRowsCount;
+            });
         });
-        api.draw();
-      }
-
-      function atualizarBotaoFiltro() {
-        colunas.forEach((col, index) => {
-          const savedFilter = localStorage.getItem(`agendamentoFiltroColuna${index}`);
-          const selectedValues = savedFilter ? JSON.parse(savedFilter) : [];
-          const button = $(`.filter-select[data-column-name="${col}"]`);
-          if (selectedValues.length > 0) {
-            button.text("APLICADO").addClass("applied");
-          } else {
-            button.text("Filtrar / Limpar").removeClass("applied");
-          }
-        });
-      }
-
-      function aplicarFiltroModal() {
-        const columnIndex = $('#filterModalOverlay').data('column-index');
-        const selectedValues = $('#modalCheckboxList input:checked').map(function() {
-          return this.value;
-        }).get();
-        
-        localStorage.setItem(`agendamentoFiltroColuna${columnIndex}`, JSON.stringify(selectedValues));
-        
-        const searchString = selectedValues.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|');
-        
-        const column = dataTable.column(columnIndex);
-        if (searchString) {
-          column.search(searchString, true, false).draw();
-        } else {
-          column.search('').draw();
-        }
-        atualizarBotaoFiltro();
-      }
-      
-      // Lógica do Modal de Filtro
-      $(document).on('click', '.filter-select', function() {
-        const columnIndex = $(this).closest('th').index();
-        const columnName = colunas[columnIndex];
-        const filteredData = dataTable.rows({search:'applied'}).data().toArray();
-        let uniqueValues = [...new Set(filteredData.map(row => row[columnName]))].filter(Boolean);
-        
-        if (columnName === "DATA"){
-          uniqueValues.sort((a,b)=>{ 
-            const toTime=v=>{ const [d,m,y]=v.split("/").map(Number); return new Date(y,m-1,d).getTime(); }; 
-            return toTime(a)-toTime(b); 
-          });
-        } else { uniqueValues.sort(); }
-
-        const savedFilter = localStorage.getItem(`agendamentoFiltroColuna${columnIndex}`);
-        const savedValues = savedFilter ? JSON.parse(savedFilter) : [];
-        
-        let checkboxesHtml = '';
-        uniqueValues.forEach(value => {
-          const isChecked = savedValues.includes(value) ? 'checked' : '';
-          checkboxesHtml += `
-            <label>
-                <input type="checkbox" value="${value}" ${isChecked}> ${value}
-            </label>
-          `;
-        });
-
-        $('#modalTitle').text(`Filtrar por ${columnName}`);
-        $('#modalCheckboxList').html(checkboxesHtml);
-        $('#filterModalOverlay').data('column-index', columnIndex).show();
-      });
-
-      // Lógica para os novos botões do modal
-      $('#btnSelectAll').on('click', function() {
-          $('#modalCheckboxList input[type="checkbox"]').prop('checked', true);
-      });
-
-      // Modificação: Clicar em "Desmarcar Todos" também limpa o filtro e exibe tudo.
-      $('#btnSelectNone').on('click', function() {
-          const columnIndex = $('#filterModalOverlay').data('column-index');
-          localStorage.removeItem(`agendamentoFiltroColuna${columnIndex}`);
-          dataTable.column(columnIndex).search('').draw();
-          atualizarBotaoFiltro();
-          $('#filterModalOverlay').hide();
-      });
-
-      $('#btnApplyFilter').on('click', function() {
-          aplicarFiltroModal();
-          $('#filterModalOverlay').hide();
-      });
-
-      // Modificação: Clicar fora do modal também limpa o filtro e exibe tudo.
-      $('#filterModalOverlay').on('click touchstart', function(e) {
-        if ($(e.target).is('#filterModalOverlay')) {
-            const columnIndex = $(this).data('column-index');
-            localStorage.removeItem(`agendamentoFiltroColuna${columnIndex}`);
-            dataTable.column(columnIndex).search('').draw();
-            atualizarBotaoFiltro();
-            $(this).hide();
-        }
-      });
-      
-      aplicarFiltrosSalvos();
-      atualizarBotaoFiltro();
-      
-      // Popup CARGAS e SENHA DE AGENDAMENTO
-      $('#planilha tbody').on('click', '.popup-cell', function(){
-        const conteudo = $(this).text();
-        const coluna = $(this).data('col');
-        const titulo = coluna === "CARGAS" ? "Detalhes da Carga" : "Senha de Agendamento";
-        $('#modalCarga h2').text(titulo);
-        $('#conteudoCarga').text(conteudo);
-        $('#modalCarga').css('display','flex');
-      });
-      $('.close-modal').on('click', function(){ $('#modalCarga').hide(); });
-      $('#modalCarga').on('click', function(e){ if(e.target.id === 'modalCarga') $(this).hide(); });
     }
-  });
-}
 
-// Inicia o carregamento dos dados
-$(document).ready(function() {
-  const agendamentosRef = collection(db, "agendamentos");
-  const q = query(agendamentosRef, orderBy("data"));
-
-  onSnapshot(q, (snapshot) => {
-    const data = snapshot.docs.map(doc => {
-      const dados = doc.data();
-      return {
-        "SENHA DE AGENDAMENTO": dados.senha || "",
-        "DATA": dados.data || "",
-        "CENTRAL": dados.central || "",
-        "CARGAS": dados.cargas || "",
-        "FORNECEDOR": dados.fornecedor || "",
-        "TIPO DE PRODUTO": dados.tipoDeProduto || "",
-        "PRODUTO": dados.produto || ""
-      };
+    $(document).ready(function() {
+        carregarAgendamentos();
     });
-    
-    // Destruir a tabela existente e recriar com os novos dados
-    if ($.fn.DataTable.isDataTable('#planilha')) {
-      dataTable.destroy();
-      $('#planilha tbody').empty();
-      $('#planilha thead tr').empty();
-    }
-    
-    // Repopula o cabeçalho e inicializa a tabela
-    inicializarTabela();
-    dataTable.clear().rows.add(data).draw();
-  });
-});
 
-function exportarPDF(){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF('landscape');
-  const tabela = dataTable;
-  const dadosVisiveis = tabela.rows({ search: 'applied' }).data().toArray();
-  const headers = colunas;
-  const rows = dadosVisiveis.map(r => colunas.map(c => r[c] || ""));
-  
-  // Define a largura das colunas e a quebra de linha apenas para o conteúdo das células
-  doc.autoTable({ 
-    head: [headers], 
-    body: rows, 
-    startY: 20, 
-    styles: { 
-      fontSize: 9, 
-      cellPadding: 3, 
-      halign: 'center', 
-      valign: 'middle'
-    },
-    headStyles: {
-      overflow: 'visible',
-      fontStyle: 'bold',
-      halign: 'center',
-      valign: 'top',
-      fontSize: 9,
-      minCellHeight: 15,
-      cellWidth: 'auto',
-      overflow: 'visible'
-    },
-    bodyStyles: {
-      overflow: 'linebreak',
-    },
-    columnStyles: {
-      0: { cellWidth: 50 }, // SENHA DE AGENDAMENTO
-      1: { cellWidth: 30 }, // DATA
-      2: { cellWidth: 30 }, // CENTRAL
-      3: { cellWidth: 35 }, // CARGAS
-      4: { cellWidth: 35 }, // FORNECEDOR
-      5: { cellWidth: 50 }, // TIPO DE PRODUTO
-      6: { cellWidth: 40 } // PRODUTO
-    }
-  });
-  
-  const dataHoje = new Date().toLocaleDateString('pt-BR');
-  doc.save(`agendamento_${dataHoje}.pdf`);
-}
+    window.exportarPDF = () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('l', 'pt', 'a4');
+        const headers = ["Senha", "Data", "Central", "Cargas", "Pedido de Compra", "Fornecedor", "Tipo de Produto", "Produto", "Volumes"];
+        const data = dataTable.rows({ search: 'applied' }).data().toArray().map(row => {
+            return [
+                String(row[0]).replace(/<br>/g, ' ').trim(), 
+                String(row[1]).replace(/<br>/g, ' ').trim(), 
+                String(row[2]).replace(/<br>/g, ' ').trim(),
+                String(row[3]).replace(/<br>/g, ' ').trim(),
+                String(row[4]).replace(/<br>/g, ' ').trim(),
+                String(row[5]).replace(/<br>/g, ' ').trim(), 
+                $(row[6]).text().trim(), 
+                String(row[7]).replace(/<br>/g, ' ').trim(),
+                String(row[8]).replace(/<br>/g, ' ').trim()
+            ];
+        });
+        
+        doc.autoTable({
+            head: [headers],
+            body: data,
+            tableWidth: 'wrap',
+            styles: {
+                cellPadding: 4,
+                fontSize: 10,
+                valign: 'top',
+                overflow: 'linebreak',
+                lineWidth: 0.5,
+                lineColor: [0, 0, 0]
+            },
+            headStyles: {
+                fillColor: [204, 0, 0],
+                textColor: 255,
+                fontStyle: 'bold',
+                halign: 'center',
+                lineWidth: 0.5,
+                lineColor: [0, 0, 0]
+            },
+            columnStyles: {
+                0: { cellWidth: 50 }, 
+                1: { cellWidth: 70 }, 
+                2: { cellWidth: 80 }, 
+                3: { cellWidth: 80 }, 
+                4: { cellWidth: 90 },
+                5: { cellWidth: 80 }, 
+                6: { cellWidth: 70 }, 
+                7: { cellWidth: 70 },
+                8: { cellWidth: 80 }
+            }
+        });
 
-function exportarExcel(){
-  const tabela = dataTable;
-  const dadosVisiveis = tabela.rows({ search: 'applied' }).data().toArray();
-  const headers = colunas;
-  const rows = dadosVisiveis.map(r => colunas.map(c => r[c] || ""));
-  const ws_data = [headers, ...rows];
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(ws_data);
-  ws['!cols'] = headers.map(() => ({ wch: 20 }));
-  XLSX.utils.book_append_sheet(wb, ws, "Agendamento");
-  const dataHoje = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
-  XLSX.writeFile(wb, `agendamento_${dataHoje}.xlsx`);
-}
+        const dataHoje = new Date().toLocaleDateString('pt-BR');
+        doc.save(`agendamento_${dataHoje}.pdf`);
+    };
+
+    window.exportarExcel = () => {
+        const headers = ["Senha", "Data", "Central", "Cargas", "Pedido de Compra", "Fornecedor", "Tipo de Produto", "Produto", "Volumes"];
+        const data = dataTable.rows({ search: 'applied' }).data().toArray().map(row => {
+            return [
+                String(row[0]).replace(/<br>/g, ' ').trim(),
+                String(row[1]).replace(/<br>/g, ' ').trim(),
+                String(row[2]).replace(/<br>/g, ' ').trim(),
+                String(row[3]).replace(/<br>/g, ' ').trim(),
+                String(row[4]).replace(/<br>/g, ' ').trim(),
+                String(row[5]).replace(/<br>/g, ' ').trim(),
+                $(row[6]).text().trim(),
+                String(row[7]).replace(/<br>/g, ' ').trim(),
+                String(row[8]).replace(/<br>/g, ' ').trim()
+            ];
+        });
+        const worksheet = XLSX.utils.aoa_to_sheet([headers, ...data]);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Agendamentos");
+        XLSX.writeFile(workbook, "agendamentos.xlsx");
+    };
 </script>
 
 </body>
