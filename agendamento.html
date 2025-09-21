@@ -83,9 +83,61 @@
             background-color: #fff3cd !important;
         }
 
+        /* Estilos adicionados */
+        #userBar {
+            background: #E6E6E6;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #userBar span {
+            flex-shrink: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #userBar button {
+            width: auto;
+            flex-shrink: 0;
+            margin-left: 10px;
+        }
+        
+        thead input {
+            width: 100%;
+            padding: 3px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
+
+<div id="userBar">
+    <button onclick="window.location.href = 'gerenciamento.html'" style="
+        background: transparent;
+        border: none;
+        color: #333;
+        font-size: 24px;
+        cursor: pointer;
+        margin-right: 10px;
+    ">←</button>
+    <span id="welcomeUser" style="font-weight:bold; color:#333; flex-grow: 1;"></span>
+    <button onclick="logout()" style="background:#CC0000; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold;">Sair</button>
+</div>
+<script>
+    const username = localStorage.getItem("username") || "Usuário";
+    document.addEventListener("DOMContentLoaded", ()=>{
+        document.getElementById("welcomeUser").textContent = "Bem-vindo, " + username;
+    });
+</script>
 
 <header>
     <h1>Agendamentos de Cargas - Móveis Simonetti</h1>
@@ -101,6 +153,7 @@
     <table id="agendamentosTabela" class="display" style="width:100%">
         <thead>
             <tr>
+                <th><input type="checkbox" id="selectAllCheckbox"></th>
                 <th>Senha</th>
                 <th>Data</th>
                 <th>Central</th>
@@ -110,6 +163,18 @@
                 <th>Tipo de Produto</th>
                 <th>Produto</th>
                 <th>Volumes</th>
+            </tr>
+            <tr id="filterRow">
+                <th></th>
+                <th><input type="text" placeholder="Buscar Senha" /></th>
+                <th><input type="text" placeholder="Buscar Data" /></th>
+                <th><input type="text" placeholder="Buscar Central" /></th>
+                <th><input type="text" placeholder="Buscar Cargas" /></th>
+                <th><input type="text" placeholder="Buscar Pedido" /></th>
+                <th><input type="text" placeholder="Buscar Fornecedor" /></th>
+                <th><input type="text" placeholder="Buscar Tipo" /></th>
+                <th><input type="text" placeholder="Buscar Produto" /></th>
+                <th><input type="text" placeholder="Buscar Volumes" /></th>
             </tr>
         </thead>
         <tbody>
@@ -122,10 +187,33 @@
 </footer>
 
 <script type="module">
-    import { db } from "./firebase-config.js";
-    import { collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { db, auth } from "./firebase-config.js";
+    import { collection, onSnapshot, query, orderBy, getDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { adicionarHistorico } from "./historico.js"; // Importa a função do arquivo historico.js
 
     let dataTable = null;
+    let currentUserUid = null;
+    let currentUserName = null;
+
+    onAuthStateChanged(auth, user => {
+        if (user) {
+            currentUserUid = user.uid;
+            currentUserName = localStorage.getItem("username") || user.email;
+            carregarAgendamentos();
+        } else {
+            // Redireciona para a página de login se não houver usuário logado
+            window.location.href = "index.html";
+        }
+    });
+
+    window.logout = () => {
+        signOut(auth).then(() => {
+            window.location.href = "index.html";
+        }).catch((error) => {
+            console.error("Erro ao fazer logout: ", error);
+        });
+    };
 
     function formatarData(data) {
         if (!data) return "Não definida";
@@ -157,6 +245,7 @@
         onSnapshot(q, (snapshot) => {
             if (dataTable) {
                 dataTable.destroy();
+                $('#agendamentosTabela tbody').empty();
             }
 
             const dadosParaTabela = [];
@@ -166,6 +255,7 @@
                 const formattedPedidoCompra = agendamento.pedidoCompra ? agendamento.pedidoCompra.replace(/ /g, '<br>') : "Não definido";
                 
                 dadosParaTabela.push([
+                    `<input type="checkbox" class="agendamento-checkbox" data-id="${doc.id}">`,
                     agendamento.senha || "Não Definida",
                     formatarData(agendamento.data),
                     agendamento.central || "Não definido",
@@ -181,6 +271,7 @@
             dataTable = $('#agendamentosTabela').DataTable({
                 data: dadosParaTabela,
                 columns: [
+                    { title: "<input type='checkbox' id='selectAllCheckbox'>" },
                     { title: "Senha" },
                     { title: "Data" },
                     { title: "Central" },
@@ -195,7 +286,7 @@
                 pageLength: 25,
                 lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
                 info: true,
-                order: [[1, 'asc']],
+                order: [[2, 'asc']],
                 oLanguage: {
                     sEmptyTable: "Nenhum agendamento encontrado.",
                     sSearch: "Buscar:",
@@ -206,12 +297,26 @@
                 initComplete: function () {
                     const filteredRowsCount = dataTable.rows({ search: 'applied' }).count();
                     document.getElementById("totalCargas").textContent = filteredRowsCount;
+
+                    this.api().columns().every(function () {
+                        const that = this;
+                        $('input', this.header()).on('keyup change clear', function () {
+                            if (that.search() !== this.value) {
+                                that.search(this.value).draw();
+                            }
+                        });
+                    });
                 }
             });
 
             dataTable.on('draw.dt', function () {
                 const filteredRowsCount = dataTable.rows({search: 'applied'}).count();
                 document.getElementById("totalCargas").textContent = filteredRowsCount;
+            });
+
+            $('#selectAllCheckbox').on('click', function() {
+                const isChecked = $(this).prop('checked');
+                $('.agendamento-checkbox').prop('checked', isChecked);
             });
         });
     }
@@ -226,15 +331,15 @@
         const headers = ["Senha", "Data", "Central", "Cargas", "Pedido de Compra", "Fornecedor", "Tipo de Produto", "Produto", "Volumes"];
         const data = dataTable.rows({ search: 'applied' }).data().toArray().map(row => {
             return [
-                String(row[0]).replace(/<br>/g, ' ').trim(), 
                 String(row[1]).replace(/<br>/g, ' ').trim(), 
-                String(row[2]).replace(/<br>/g, ' ').trim(),
+                String(row[2]).replace(/<br>/g, ' ').trim(), 
                 String(row[3]).replace(/<br>/g, ' ').trim(),
                 String(row[4]).replace(/<br>/g, ' ').trim(),
-                String(row[5]).replace(/<br>/g, ' ').trim(), 
-                $(row[6]).text().trim(), 
-                String(row[7]).replace(/<br>/g, ' ').trim(),
-                String(row[8]).replace(/<br>/g, ' ').trim()
+                String(row[5]).replace(/<br>/g, ' ').trim(),
+                String(row[6]).replace(/<br>/g, ' ').trim(), 
+                $(row[7]).text().trim(), 
+                String(row[8]).replace(/<br>/g, ' ').trim(),
+                String(row[9]).replace(/<br>/g, ' ').trim()
             ];
         });
         
@@ -279,15 +384,15 @@
         const headers = ["Senha", "Data", "Central", "Cargas", "Pedido de Compra", "Fornecedor", "Tipo de Produto", "Produto", "Volumes"];
         const data = dataTable.rows({ search: 'applied' }).data().toArray().map(row => {
             return [
-                String(row[0]).replace(/<br>/g, ' ').trim(),
                 String(row[1]).replace(/<br>/g, ' ').trim(),
                 String(row[2]).replace(/<br>/g, ' ').trim(),
                 String(row[3]).replace(/<br>/g, ' ').trim(),
                 String(row[4]).replace(/<br>/g, ' ').trim(),
                 String(row[5]).replace(/<br>/g, ' ').trim(),
-                $(row[6]).text().trim(),
-                String(row[7]).replace(/<br>/g, ' ').trim(),
-                String(row[8]).replace(/<br>/g, ' ').trim()
+                String(row[6]).replace(/<br>/g, ' ').trim(),
+                $(row[7]).text().trim(),
+                String(row[8]).replace(/<br>/g, ' ').trim(),
+                String(row[9]).replace(/<br>/g, ' ').trim()
             ];
         });
         const worksheet = XLSX.utils.aoa_to_sheet([headers, ...data]);
