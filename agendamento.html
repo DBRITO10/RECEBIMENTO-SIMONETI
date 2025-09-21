@@ -86,32 +86,12 @@
             flex-shrink: 0;
             margin-left: 10px;
         }
-        /* Estilos do filtro padrão do DataTables */
-        div.dataTables_wrapper div.dataTables_filter {
-            text-align: right;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        div.dataTables_wrapper div.dataTables_filter label {
-            width: 100%;
-            max-width: 250px;
-            text-align: left;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        div.dataTables_wrapper div.dataTables_filter input {
-            width: calc(100% - 60px);
-            display: inline-block;
-        }
         .filter-button {
             background: #d32f2f;
             color: white;
             border: none;
             padding: 5px 10px;
+            margin-top: 5px;
             border-radius: 4px;
             font-size: 14px;
             font-weight: bold;
@@ -127,7 +107,7 @@
             box-shadow: 0 2px 6px rgba(0, 123, 255, 0.4);
         }
         .modal {
-            display: none;
+            display: none; /* Inicia oculto */
             position: fixed;
             z-index: 1001;
             left: 0;
@@ -136,11 +116,9 @@
             height: 100%;
             overflow: auto;
             background-color: rgba(0,0,0,0.4);
-            display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
         }
-
         .modal-content {
             background-color: #fefefe;
             padding: 20px;
@@ -158,7 +136,6 @@
             margin-top: 10px;
             border-radius: 4px;
         }
-
         #filter-modal-content {
             max-height: 250px;
             overflow-y: auto;
@@ -166,19 +143,16 @@
             display: flex;
             flex-direction: column;
         }
-
         #filter-modal-content label {
             display: flex;
             align-items: center;
             margin: 5px 0;
             cursor: pointer;
         }
-
         #filter-modal-content label input {
             margin-right: 10px;
             width: auto;
         }
-
         #filter-modal-buttons {
             display: flex;
             justify-content: flex-end;
@@ -201,7 +175,6 @@
             background-color: #f44336;
             color: white;
         }
-
     </style>
 </head>
 <body>
@@ -231,27 +204,42 @@
         <thead>
             <tr>
                 <th><input type="checkbox" id="selectAllCheckbox"></th>
-                <th>Senha</th>
+                <th data-column="senha">
+                    Senha
+                    <button class="filter-button" data-column-index="1">Filtrar</button>
+                </th>
                 <th data-column="data">
                     Data
-                    <button class="filter-button" data-column-index="2"><i class="fas fa-filter"></i></button>
+                    <button class="filter-button" data-column-index="2">Filtrar</button>
                 </th>
                 <th data-column="central">
                     Central
-                    <button class="filter-button" data-column-index="3"><i class="fas fa-filter"></i></button>
+                    <button class="filter-button" data-column-index="3">Filtrar</button>
                 </th>
-                <th>Cargas</th>
-                <th>Pedido de Compra</th>
+                <th data-column="cargas">
+                    Cargas
+                    <button class="filter-button" data-column-index="4">Filtrar</button>
+                </th>
+                <th data-column="pedidoCompra">
+                    Pedido de Compra
+                    <button class="filter-button" data-column-index="5">Filtrar</button>
+                </th>
                 <th data-column="fornecedor">
                     Fornecedor
-                    <button class="filter-button" data-column-index="6"><i class="fas fa-filter"></i></button>
+                    <button class="filter-button" data-column-index="6">Filtrar</button>
                 </th>
                 <th data-column="tipoDeProduto">
                     Tipo de Produto
-                    <button class="filter-button" data-column-index="7"><i class="fas fa-filter"></i></button>
+                    <button class="filter-button" data-column-index="7">Filtrar</button>
                 </th>
-                <th>Produto</th>
-                <th>Volumes</th>
+                <th data-column="produto">
+                    Produto
+                    <button class="filter-button" data-column-index="8">Filtrar</button>
+                </th>
+                <th data-column="volumes">
+                    Volumes
+                    <button class="filter-button" data-column-index="9">Filtrar</button>
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -282,7 +270,6 @@
 
     let dataTable = null;
     let currentColIndex = -1;
-    let originalData = [];
 
     const carregandoEl = document.getElementById('carregando');
     const filterModal = document.getElementById('filter-modal');
@@ -367,8 +354,8 @@
                     { title: "Senha" },
                     { title: "Data" },
                     { title: "Central" },
-                    { title: "Cargas", className: "wrap-text" },
-                    { title: "Pedido de Compra", className: "wrap-text" },
+                    { title: "Cargas" },
+                    { title: "Pedido de Compra" },
                     { title: "Fornecedor" },
                     { title: "Tipo de Produto" },
                     { title: "Produto" },
@@ -416,7 +403,8 @@
             filterModalContent.appendChild(label);
         });
 
-        $(filterModal).show();
+        // Use flexbox para centralizar e exibir
+        $(filterModal).css('display', 'flex');
     }
 
     applyFilterBtn.onclick = function() {
@@ -426,7 +414,8 @@
         });
 
         if (selectedItems.length > 0) {
-            dataTable.column(currentColIndex).search(selectedItems.join('|'), true, false, true).draw();
+            const regex = selectedItems.map(item => $.fn.dataTable.util.escapeRegex(item)).join('|');
+            dataTable.column(currentColIndex).search(regex, true, false, true).draw();
         } else {
             dataTable.column(currentColIndex).search('').draw();
         }
