@@ -342,7 +342,11 @@
                     sLengthMenu: "Mostrar _MENU_ registros por página",
                     sInfo: "Mostrando de _START_ até _END_ de _TOTAL_ registros",
                     sInfoFiltered: "(filtrados de _MAX_ registros no total)",
-                    sInfoEmpty: "Mostrando 0 até 0 de 0 registros"
+                    sInfoEmpty: "Mostrando 0 até 0 de 0 registros",
+                    oPaginate: {
+                        sPrevious: "Anterior",
+                        sNext: "Próximo"
+                    }
                 }
             });
 
@@ -411,7 +415,7 @@
     };
 
     clearFilterBtn.onclick = function() {
-        dataTable.columns().search('').draw();
+        dataTable.column(currentColIndex).search('').draw();
         $(filterModal).hide();
     };
 
