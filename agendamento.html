@@ -348,7 +348,6 @@
                 }
             });
 
-            // Adiciona os botões de filtro após o carregamento da tabela
             const filterableColumns = [1, 2, 3, 4, 5, 6, 7, 8, 9];
             $('#agendamentosTabela thead th').each(function(index) {
                 if (filterableColumns.includes(index)) {
@@ -364,6 +363,17 @@
             dataTable.on('draw.dt', function () {
                 const filteredRowsCount = dataTable.rows({ search: 'applied' }).count();
                 document.getElementById("totalCargas").textContent = filteredRowsCount;
+
+                // Atualiza o estado dos botões de filtro
+                $('#agendamentosTabela .filter-button').each(function() {
+                    const colIndex = $(this).data('column-index');
+                    const search = dataTable.column(colIndex).search();
+                    if (search) {
+                        $(this).text('Aplicado').addClass('filtered');
+                    } else {
+                        $(this).text('Filtrar').removeClass('filtered');
+                    }
+                });
             });
 
             $('#selectAllCheckbox').on('click', function() {
