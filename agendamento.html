@@ -15,6 +15,8 @@
     <script type="module" src="./firebase-config.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
 
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/scroller/2.2.5/css/scroller.dataTables.min.css" />
@@ -122,6 +124,15 @@
             flex-shrink: 0;
             margin-left: 10px;
         }
+        .filter-button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 5px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -151,7 +162,6 @@
 
 <div class="table-container">
     <div id="exportButtons">
-        <button id="openFilterModal">Filtrar</button>
         <button onclick="exportarExcel()">Exportar Excel</button>
         <button onclick="exportarPDF()">Exportar PDF</button>
         <button onclick="window.location.href='gerenciamento.html'">Voltar ao Gerenciamento</button>
@@ -161,15 +171,15 @@
         <thead>
             <tr>
                 <th><input type="checkbox" id="selectAllCheckbox"></th>
-                <th>Senha</th>
-                <th>Data</th>
-                <th>Central</th>
-                <th>Cargas</th>
-                <th>Pedido de Compra</th>
-                <th>Fornecedor</th>
-                <th>Tipo de Produto</th>
-                <th>Produto</th>
-                <th>Volumes</th>
+                <th>Senha <button class="filter-button" data-column-index="1"><i class="fas fa-filter"></i></button></th>
+                <th>Data <button class="filter-button" data-column-index="2"><i class="fas fa-filter"></i></button></th>
+                <th>Central <button class="filter-button" data-column-index="3"><i class="fas fa-filter"></i></button></th>
+                <th>Cargas <button class="filter-button" data-column-index="4"><i class="fas fa-filter"></i></button></th>
+                <th>Pedido de Compra <button class="filter-button" data-column-index="5"><i class="fas fa-filter"></i></button></th>
+                <th>Fornecedor <button class="filter-button" data-column-index="6"><i class="fas fa-filter"></i></button></th>
+                <th>Tipo de Produto <button class="filter-button" data-column-index="7"><i class="fas fa-filter"></i></button></th>
+                <th>Produto <button class="filter-button" data-column-index="8"><i class="fas fa-filter"></i></button></th>
+                <th>Volumes <button class="filter-button" data-column-index="9"><i class="fas fa-filter"></i></button></th>
             </tr>
         </thead>
         <tbody>
@@ -181,24 +191,10 @@
 <div id="filterModal" class="modal">
     <div class="modal-content">
         <span class="close-button">&times;</span>
-        <h2>Filtros</h2>
-        <div id="filter-options">
-            <div>
-                <label for="dataFiltro">Data:</label>
-                <select id="dataFiltro"></select>
-            </div>
-            <div>
-                <label for="centralFiltro">Central:</label>
-                <select id="centralFiltro"></select>
-            </div>
-            <div>
-                <label for="fornecedorFiltro">Fornecedor:</label>
-                <select id="fornecedorFiltro"></select>
-            </div>
-            <div>
-                <label for="tipoProdutoFiltro">Tipo de Produto:</label>
-                <select id="tipoProdutoFiltro"></select>
-            </div>
+        <h2>Filtrar por <span id="filterColumnTitle"></span></h2>
+        <div>
+            <label for="filterSelect">Selecione:</label>
+            <select id="filterSelect"></select>
         </div>
         <button id="aplicarFiltroBtn">Aplicar Filtro</button>
         <button id="limparFiltroBtn">Limpar Filtro</button>
@@ -217,17 +213,43 @@
     let dataTable = null;
     const carregandoEl = document.getElementById('carregando');
     let dadosCache = [];
+    let currentFilteredColumn = -1;
 
     // Configuração do modal
     const filterModal = document.getElementById("filterModal");
-    const openFilterModalBtn = document.getElementById("openFilterModal");
     const closeButton = document.querySelector("#filterModal .close-button");
     const aplicarFiltroBtn = document.getElementById("aplicarFiltroBtn");
     const limparFiltroBtn = document.getElementById("limparFiltroBtn");
+    const filterSelect = document.getElementById("filterSelect");
+    const filterColumnTitle = document.getElementById("filterColumnTitle");
 
-    openFilterModalBtn.onclick = function() {
+    $(document).on('click', '.filter-button', function() {
+        const columnIndex = $(this).data('column-index');
+        currentFilteredColumn = columnIndex;
+
+        const column = dataTable.column(columnIndex);
+        const columnTitle = column.header().textContent.split(' ')[0].trim();
+        filterColumnTitle.textContent = columnTitle;
+
+        const uniqueValues = new Set();
+        column.data().each(function(dado) {
+            const valorLimpo = typeof dado === 'string' ? $(dado).text().trim() : dado;
+            if (valorLimpo) {
+                uniqueValues.add(valorLimpo);
+            }
+        });
+
+        filterSelect.innerHTML = '<option value="">Todos</option>';
+        [...uniqueValues].sort().forEach(valor => {
+            const option = document.createElement('option');
+            option.value = valor;
+            option.textContent = valor;
+            filterSelect.appendChild(option);
+        });
+
         filterModal.style.display = "block";
-    }
+    });
+
 
     closeButton.onclick = function() {
         filterModal.style.display = "none";
@@ -240,32 +262,15 @@
     }
 
     aplicarFiltroBtn.onclick = function() {
-        const dataFiltro = document.getElementById("dataFiltro").value;
-        const centralFiltro = document.getElementById("centralFiltro").value;
-        const fornecedorFiltro = document.getElementById("fornecedorFiltro").value;
-        const tipoProdutoFiltro = document.getElementById("tipoProdutoFiltro").value;
-
-        dataTable.columns().every(function () {
-            this.search('');
-        });
-
-        if (dataFiltro) dataTable.column(2).search(dataFiltro).draw();
-        if (centralFiltro) dataTable.column(3).search(centralFiltro).draw();
-        if (fornecedorFiltro) dataTable.column(6).search(fornecedorFiltro).draw();
-        if (tipoProdutoFiltro) dataTable.column(7).search(tipoProdutoFiltro).draw();
-
+        const selectedValue = filterSelect.value;
+        dataTable.column(currentFilteredColumn).search(selectedValue).draw();
         filterModal.style.display = "none";
     }
 
     limparFiltroBtn.onclick = function() {
-        document.getElementById("dataFiltro").value = "";
-        document.getElementById("centralFiltro").value = "";
-        document.getElementById("fornecedorFiltro").value = "";
-        document.getElementById("tipoProdutoFiltro").value = "";
         dataTable.columns().search('').draw();
         filterModal.style.display = "none";
     }
-
 
     onAuthStateChanged(auth, user => {
         if (user) {
@@ -302,36 +307,6 @@
         }
     }
 
-    function preencherFiltros(dados) {
-        const dataUnica = new Set();
-        const centralUnica = new Set();
-        const fornecedorUnico = new Set();
-        const tipoProdutoUnico = new Set();
-
-        dados.forEach(dado => {
-            if (dado.data) dataUnica.add(dado.data);
-            if (dado.central) centralUnica.add(dado.central);
-            if (dado.fornecedor) fornecedorUnico.add(dado.fornecedor);
-            if (dado.tipoDeProduto) tipoProdutoUnico.add(dado.tipoDeProduto);
-        });
-
-        const preencherSelect = (selectId, valores) => {
-            const select = document.getElementById(selectId);
-            select.innerHTML = '<option value="">Todos</option>';
-            [...valores].sort().forEach(valor => {
-                const option = document.createElement('option');
-                option.value = valor;
-                option.textContent = valor;
-                select.appendChild(option);
-            });
-        };
-
-        preencherSelect('dataFiltro', dataUnica);
-        preencherSelect('centralFiltro', centralUnica);
-        preencherSelect('fornecedorFiltro', fornecedorUnico);
-        preencherSelect('tipoProdutoFiltro', tipoProdutoUnico);
-    }
-
     function carregarAgendamentos() {
         carregandoEl.textContent = 'Carregando...';
         const q = query(collection(db, "agendamentos"), orderBy("data", "asc"), orderBy("senha", "asc"));
@@ -363,8 +338,6 @@
                     ]);
                 });
             }
-
-            preencherFiltros(dadosCache);
 
             if (dataTable) {
                 dataTable.destroy();
