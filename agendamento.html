@@ -171,7 +171,7 @@
         <thead>
             <tr>
                 <th><input type="checkbox" id="selectAllCheckbox"></th>
-                <th>Senha <button class="filter-button" data-column-index="1"><i class="fas fa-filter"></i></button></th>
+                <th>Senha</th>
                 <th>Data <button class="filter-button" data-column-index="2"><i class="fas fa-filter"></i></button></th>
                 <th>Central <button class="filter-button" data-column-index="3"><i class="fas fa-filter"></i></button></th>
                 <th>Cargas <button class="filter-button" data-column-index="4"><i class="fas fa-filter"></i></button></th>
@@ -228,7 +228,7 @@
         currentFilteredColumn = columnIndex;
 
         const column = dataTable.column(columnIndex);
-        const columnTitle = column.header().textContent.split(' ')[0].trim();
+        const columnTitle = $(column.header()).text().replace('filter', '').trim();
         filterColumnTitle.textContent = columnTitle;
 
         const uniqueValues = new Set();
