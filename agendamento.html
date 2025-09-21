@@ -28,15 +28,15 @@
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         thead th { background: #cc0000; color: white; position: relative; }
         #exportButtons { margin-bottom: 15px; }
-        #exportButtons button { 
-            display: inline-block; 
-            width: auto; 
-            margin-right: 10px; 
-            padding: 10px 20px; 
-            background: #d32f2f; 
-            color: white; 
-            border: none; 
-            border-radius: 4px; 
+        #exportButtons button {
+            display: inline-block;
+            width: auto;
+            margin-right: 10px;
+            padding: 10px 20px;
+            background: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
         }
@@ -49,41 +49,55 @@
             font-size: 14px;
             color: #666;
         }
-        
-        .wrap-text {
-            white-space: normal;
-        }
 
-        .table-mesa {
-            background-color: #d1e7dd !important; 
-        }
-        .table-roupeiro {
-            background-color: #fff3cd !important; 
-        }
-        .table-celular, .table-tablet {
-            background-color: #cce5ff !important; 
-        }
-        .table-armario, .table-cozinha {
-            background-color: #fff3cd !important;
-        }
+        .wrap-text { white-space: normal; }
 
-        .tipo-produto-cell {
-            background-color: inherit;
-        }
-        .tipo-produto-cell.table-mesa {
-            background-color: #d1e7dd !important;
-        }
-        .tipo-produto-cell.table-roupeiro {
-            background-color: #fff3cd !important;
-        }
-        .tipo-produto-cell.table-celular, .tipo-produto-cell.table-tablet {
-            background-color: #cce5ff !important;
-        }
-        .tipo-produto-cell.table-armario, .tipo-produto-cell.table-cozinha {
-            background-color: #fff3cd !important;
-        }
+        .table-mesa { background-color: #d1e7dd !important; }
+        .table-roupeiro { background-color: #fff3cd !important; }
+        .table-celular, .table-tablet { background-color: #cce5ff !important; }
+        .table-armario, .table-cozinha { background-color: #fff3cd !important; }
 
-        /* Estilos adicionados */
+        .tipo-produto-cell { background-color: inherit; }
+        .tipo-produto-cell.table-mesa { background-color: #d1e7dd !important; }
+        .tipo-produto-cell.table-roupeiro { background-color: #fff3cd !important; }
+        .tipo-produto-cell.table-celular, .tipo-produto-cell.table-tablet { background-color: #cce5ff !important; }
+        .tipo-produto-cell.table-armario, .tipo-produto-cell.table-cozinha { background-color: #fff3cd !important; }
+
+        /* Estilos do Modal de Filtro */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+            position: relative;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover, .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
         #userBar {
             background: #E6E6E6;
             padding: 10px;
@@ -107,14 +121,6 @@
             width: auto;
             flex-shrink: 0;
             margin-left: 10px;
-        }
-        
-        thead input {
-            width: 100%;
-            padding: 3px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
         }
     </style>
 </head>
@@ -142,9 +148,10 @@
 <header>
     <h1>Agendamentos de Cargas - Móveis Simonetti</h1>
 </header>
-  
+
 <div class="table-container">
     <div id="exportButtons">
+        <button id="openFilterModal">Filtrar</button>
         <button onclick="exportarExcel()">Exportar Excel</button>
         <button onclick="exportarPDF()">Exportar PDF</button>
         <button onclick="window.location.href='gerenciamento.html'">Voltar ao Gerenciamento</button>
@@ -164,22 +171,38 @@
                 <th>Produto</th>
                 <th>Volumes</th>
             </tr>
-            <tr id="filterRow">
-                <th></th>
-                <th><input type="text" placeholder="Buscar Senha" /></th>
-                <th><input type="text" placeholder="Buscar Data" /></th>
-                <th><input type="text" placeholder="Buscar Central" /></th>
-                <th><input type="text" placeholder="Buscar Cargas" /></th>
-                <th><input type="text" placeholder="Buscar Pedido" /></th>
-                <th><input type="text" placeholder="Buscar Fornecedor" /></th>
-                <th><input type="text" placeholder="Buscar Tipo" /></th>
-                <th><input type="text" placeholder="Buscar Produto" /></th>
-                <th><input type="text" placeholder="Buscar Volumes" /></th>
-            </tr>
         </thead>
         <tbody>
         </tbody>
     </table>
+    <p id="carregando" style="text-align: center;">Carregando...</p>
+</div>
+
+<div id="filterModal" class="modal">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2>Filtros</h2>
+        <div id="filter-options">
+            <div>
+                <label for="dataFiltro">Data:</label>
+                <select id="dataFiltro"></select>
+            </div>
+            <div>
+                <label for="centralFiltro">Central:</label>
+                <select id="centralFiltro"></select>
+            </div>
+            <div>
+                <label for="fornecedorFiltro">Fornecedor:</label>
+                <select id="fornecedorFiltro"></select>
+            </div>
+            <div>
+                <label for="tipoProdutoFiltro">Tipo de Produto:</label>
+                <select id="tipoProdutoFiltro"></select>
+            </div>
+        </div>
+        <button id="aplicarFiltroBtn">Aplicar Filtro</button>
+        <button id="limparFiltroBtn">Limpar Filtro</button>
+    </div>
 </div>
 
 <footer>
@@ -188,21 +211,67 @@
 
 <script type="module">
     import { db, auth } from "./firebase-config.js";
-    import { collection, onSnapshot, query, orderBy, getDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { collection, onSnapshot, query, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { adicionarHistorico } from "./historico.js"; // Importa a função do arquivo historico.js
 
     let dataTable = null;
-    let currentUserUid = null;
-    let currentUserName = null;
+    const carregandoEl = document.getElementById('carregando');
+    let dadosCache = [];
+
+    // Configuração do modal
+    const filterModal = document.getElementById("filterModal");
+    const openFilterModalBtn = document.getElementById("openFilterModal");
+    const closeButton = document.querySelector("#filterModal .close-button");
+    const aplicarFiltroBtn = document.getElementById("aplicarFiltroBtn");
+    const limparFiltroBtn = document.getElementById("limparFiltroBtn");
+
+    openFilterModalBtn.onclick = function() {
+        filterModal.style.display = "block";
+    }
+
+    closeButton.onclick = function() {
+        filterModal.style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        if (event.target == filterModal) {
+            filterModal.style.display = "none";
+        }
+    }
+
+    aplicarFiltroBtn.onclick = function() {
+        const dataFiltro = document.getElementById("dataFiltro").value;
+        const centralFiltro = document.getElementById("centralFiltro").value;
+        const fornecedorFiltro = document.getElementById("fornecedorFiltro").value;
+        const tipoProdutoFiltro = document.getElementById("tipoProdutoFiltro").value;
+
+        dataTable.columns().every(function () {
+            this.search('');
+        });
+
+        if (dataFiltro) dataTable.column(2).search(dataFiltro).draw();
+        if (centralFiltro) dataTable.column(3).search(centralFiltro).draw();
+        if (fornecedorFiltro) dataTable.column(6).search(fornecedorFiltro).draw();
+        if (tipoProdutoFiltro) dataTable.column(7).search(tipoProdutoFiltro).draw();
+
+        filterModal.style.display = "none";
+    }
+
+    limparFiltroBtn.onclick = function() {
+        document.getElementById("dataFiltro").value = "";
+        document.getElementById("centralFiltro").value = "";
+        document.getElementById("fornecedorFiltro").value = "";
+        document.getElementById("tipoProdutoFiltro").value = "";
+        dataTable.columns().search('').draw();
+        filterModal.style.display = "none";
+    }
+
 
     onAuthStateChanged(auth, user => {
         if (user) {
-            currentUserUid = user.uid;
-            currentUserName = localStorage.getItem("username") || user.email;
             carregarAgendamentos();
         } else {
-            // Redireciona para a página de login se não houver usuário logado
+            carregandoEl.textContent = "Você precisa estar logado para ver os agendamentos.";
             window.location.href = "index.html";
         }
     });
@@ -225,48 +294,82 @@
         if (!tipo) return '';
         const tipoLimpo = tipo.toLowerCase().trim();
         switch (tipoLimpo) {
-            case 'mesa':
-                return 'table-mesa';
-            case 'roupeiro':
-                return 'table-roupeiro';
-            case 'celular':
-            case 'tablet':
-                return 'table-celular';
-            case 'armário':
-            case 'cozinha':
-                return 'table-armario';
-            default:
-                return '';
+            case 'mesa': return 'table-mesa';
+            case 'roupeiro': return 'table-roupeiro';
+            case 'celular': case 'tablet': return 'table-celular';
+            case 'armário': case 'cozinha': return 'table-armario';
+            default: return '';
         }
     }
 
+    function preencherFiltros(dados) {
+        const dataUnica = new Set();
+        const centralUnica = new Set();
+        const fornecedorUnico = new Set();
+        const tipoProdutoUnico = new Set();
+
+        dados.forEach(dado => {
+            if (dado.data) dataUnica.add(dado.data);
+            if (dado.central) centralUnica.add(dado.central);
+            if (dado.fornecedor) fornecedorUnico.add(dado.fornecedor);
+            if (dado.tipoDeProduto) tipoProdutoUnico.add(dado.tipoDeProduto);
+        });
+
+        const preencherSelect = (selectId, valores) => {
+            const select = document.getElementById(selectId);
+            select.innerHTML = '<option value="">Todos</option>';
+            [...valores].sort().forEach(valor => {
+                const option = document.createElement('option');
+                option.value = valor;
+                option.textContent = valor;
+                select.appendChild(option);
+            });
+        };
+
+        preencherSelect('dataFiltro', dataUnica);
+        preencherSelect('centralFiltro', centralUnica);
+        preencherSelect('fornecedorFiltro', fornecedorUnico);
+        preencherSelect('tipoProdutoFiltro', tipoProdutoUnico);
+    }
+
     function carregarAgendamentos() {
+        carregandoEl.textContent = 'Carregando...';
         const q = query(collection(db, "agendamentos"), orderBy("data", "asc"), orderBy("senha", "asc"));
         onSnapshot(q, (snapshot) => {
+            dadosCache = [];
+            const dadosParaTabela = [];
+
+            if (snapshot.empty) {
+                carregandoEl.textContent = 'Nenhum agendamento encontrado.';
+            } else {
+                carregandoEl.style.display = 'none';
+                snapshot.forEach(doc => {
+                    const agendamento = doc.data();
+                    dadosCache.push(agendamento);
+                    const formattedCargas = agendamento.cargas ? agendamento.cargas.replace(/ /g, '<br>') : "Não definido";
+                    const formattedPedidoCompra = agendamento.pedidoCompra ? agendamento.pedidoCompra.replace(/ /g, '<br>') : "Não definido";
+
+                    dadosParaTabela.push([
+                        `<input type="checkbox" class="agendamento-checkbox" data-id="${doc.id}">`,
+                        agendamento.senha || "Não Definida",
+                        formatarData(agendamento.data),
+                        agendamento.central || "Não definido",
+                        formattedCargas,
+                        formattedPedidoCompra,
+                        agendamento.fornecedor || "Não definido",
+                        `<div class="tipo-produto-cell ${getClassForTipoProduto(agendamento.tipoDeProduto)}">${agendamento.tipoDeProduto || "Não definido"}</div>`,
+                        agendamento.produto || "Não definido",
+                        agendamento.volumes || "Não definido"
+                    ]);
+                });
+            }
+
+            preencherFiltros(dadosCache);
+
             if (dataTable) {
                 dataTable.destroy();
                 $('#agendamentosTabela tbody').empty();
             }
-
-            const dadosParaTabela = [];
-            snapshot.forEach(doc => {
-                const agendamento = doc.data();
-                const formattedCargas = agendamento.cargas ? agendamento.cargas.replace(/ /g, '<br>') : "Não definido";
-                const formattedPedidoCompra = agendamento.pedidoCompra ? agendamento.pedidoCompra.replace(/ /g, '<br>') : "Não definido";
-                
-                dadosParaTabela.push([
-                    `<input type="checkbox" class="agendamento-checkbox" data-id="${doc.id}">`,
-                    agendamento.senha || "Não Definida",
-                    formatarData(agendamento.data),
-                    agendamento.central || "Não definido",
-                    formattedCargas,
-                    formattedPedidoCompra,
-                    agendamento.fornecedor || "Não definido",
-                    `<div class="tipo-produto-cell ${getClassForTipoProduto(agendamento.tipoDeProduto)}">${agendamento.tipoDeProduto || "Não definido"}</div>`,
-                    agendamento.produto || "Não definido",
-                    agendamento.volumes || "Não definido"
-                ]);
-            });
 
             dataTable = $('#agendamentosTabela').DataTable({
                 data: dadosParaTabela,
@@ -293,24 +396,11 @@
                     sLengthMenu: "Mostrar _MENU_ registros por página",
                     sInfo: "Mostrando de _START_ até _END_ de _TOTAL_ registros",
                     sInfoEmpty: "Mostrando 0 até 0 de 0 registros"
-                },
-                initComplete: function () {
-                    const filteredRowsCount = dataTable.rows({ search: 'applied' }).count();
-                    document.getElementById("totalCargas").textContent = filteredRowsCount;
-
-                    this.api().columns().every(function () {
-                        const that = this;
-                        $('input', this.header()).on('keyup change clear', function () {
-                            if (that.search() !== this.value) {
-                                that.search(this.value).draw();
-                            }
-                        });
-                    });
                 }
             });
 
             dataTable.on('draw.dt', function () {
-                const filteredRowsCount = dataTable.rows({search: 'applied'}).count();
+                const filteredRowsCount = dataTable.rows({ search: 'applied' }).count();
                 document.getElementById("totalCargas").textContent = filteredRowsCount;
             });
 
@@ -321,28 +411,24 @@
         });
     }
 
-    $(document).ready(function() {
-        carregarAgendamentos();
-    });
-
     window.exportarPDF = () => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('l', 'pt', 'a4');
         const headers = ["Senha", "Data", "Central", "Cargas", "Pedido de Compra", "Fornecedor", "Tipo de Produto", "Produto", "Volumes"];
         const data = dataTable.rows({ search: 'applied' }).data().toArray().map(row => {
             return [
-                String(row[1]).replace(/<br>/g, ' ').trim(), 
-                String(row[2]).replace(/<br>/g, ' ').trim(), 
+                String(row[1]).replace(/<br>/g, ' ').trim(),
+                String(row[2]).replace(/<br>/g, ' ').trim(),
                 String(row[3]).replace(/<br>/g, ' ').trim(),
                 String(row[4]).replace(/<br>/g, ' ').trim(),
                 String(row[5]).replace(/<br>/g, ' ').trim(),
-                String(row[6]).replace(/<br>/g, ' ').trim(), 
-                $(row[7]).text().trim(), 
+                String(row[6]).replace(/<br>/g, ' ').trim(),
+                $(row[7]).text().trim(),
                 String(row[8]).replace(/<br>/g, ' ').trim(),
                 String(row[9]).replace(/<br>/g, ' ').trim()
             ];
         });
-        
+
         doc.autoTable({
             head: [headers],
             body: data,
@@ -364,13 +450,13 @@
                 lineColor: [0, 0, 0]
             },
             columnStyles: {
-                0: { cellWidth: 50 }, 
-                1: { cellWidth: 70 }, 
-                2: { cellWidth: 80 }, 
-                3: { cellWidth: 80 }, 
+                0: { cellWidth: 50 },
+                1: { cellWidth: 70 },
+                2: { cellWidth: 80 },
+                3: { cellWidth: 80 },
                 4: { cellWidth: 90 },
-                5: { cellWidth: 80 }, 
-                6: { cellWidth: 70 }, 
+                5: { cellWidth: 80 },
+                6: { cellWidth: 70 },
                 7: { cellWidth: 70 },
                 8: { cellWidth: 80 }
             }
