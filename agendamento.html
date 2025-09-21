@@ -204,42 +204,15 @@
         <thead>
             <tr>
                 <th><input type="checkbox" id="selectAllCheckbox"></th>
-                <th data-column="senha">
-                    Senha
-                    <button class="filter-button" data-column-index="1">Filtrar</button>
-                </th>
-                <th data-column="data">
-                    Data
-                    <button class="filter-button" data-column-index="2">Filtrar</button>
-                </th>
-                <th data-column="central">
-                    Central
-                    <button class="filter-button" data-column-index="3">Filtrar</button>
-                </th>
-                <th data-column="cargas">
-                    Cargas
-                    <button class="filter-button" data-column-index="4">Filtrar</button>
-                </th>
-                <th data-column="pedidoCompra">
-                    Pedido de Compra
-                    <button class="filter-button" data-column-index="5">Filtrar</button>
-                </th>
-                <th data-column="fornecedor">
-                    Fornecedor
-                    <button class="filter-button" data-column-index="6">Filtrar</button>
-                </th>
-                <th data-column="tipoDeProduto">
-                    Tipo de Produto
-                    <button class="filter-button" data-column-index="7">Filtrar</button>
-                </th>
-                <th data-column="produto">
-                    Produto
-                    <button class="filter-button" data-column-index="8">Filtrar</button>
-                </th>
-                <th data-column="volumes">
-                    Volumes
-                    <button class="filter-button" data-column-index="9">Filtrar</button>
-                </th>
+                <th data-column="senha">Senha</th>
+                <th data-column="data">Data</th>
+                <th data-column="central">Central</th>
+                <th data-column="cargas">Cargas</th>
+                <th data-column="pedidoCompra">Pedido de Compra</th>
+                <th data-column="fornecedor">Fornecedor</th>
+                <th data-column="tipoDeProduto">Tipo de Produto</th>
+                <th data-column="produto">Produto</th>
+                <th data-column="volumes">Volumes</th>
             </tr>
         </thead>
         <tbody>
@@ -372,6 +345,19 @@
                     sLengthMenu: "Mostrar _MENU_ registros por página",
                     sInfo: "Mostrando de _START_ até _END_ de _TOTAL_ registros",
                     sInfoEmpty: "Mostrando 0 até 0 de 0 registros"
+                }
+            });
+
+            // Adiciona os botões de filtro após o carregamento da tabela
+            const filterableColumns = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+            $('#agendamentosTabela thead th').each(function(index) {
+                if (filterableColumns.includes(index)) {
+                    const button = $('<button>', {
+                        'class': 'filter-button',
+                        'data-column-index': index,
+                        'text': 'Filtrar'
+                    });
+                    $(this).append('<br>').append(button);
                 }
             });
 
