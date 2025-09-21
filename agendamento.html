@@ -203,7 +203,6 @@
     <table id="agendamentosTabela" class="display" style="width:100%">
         <thead>
             <tr>
-                <th><input type="checkbox" id="selectAllCheckbox"></th>
                 <th data-column="senha">Senha</th>
                 <th data-column="data">Data</th>
                 <th data-column="central">Central</th>
@@ -301,7 +300,6 @@
                     const formattedPedidoCompra = agendamento.pedidoCompra ? agendamento.pedidoCompra.replace(/ /g, '<br>') : "Não definido";
 
                     dadosParaTabela.push([
-                        `<input type="checkbox" class="agendamento-checkbox" data-id="${doc.id}">`,
                         agendamento.senha || "Não Definida",
                         formatarData(agendamento.data),
                         agendamento.central || "Não definido",
@@ -323,7 +321,6 @@
             dataTable = $('#agendamentosTabela').DataTable({
                 data: dadosParaTabela,
                 columns: [
-                    { title: "<input type='checkbox' id='selectAllCheckbox'>" },
                     { title: "Senha" },
                     { title: "Data" },
                     { title: "Central" },
@@ -338,17 +335,18 @@
                 pageLength: 25,
                 lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
                 info: true,
-                order: [[2, 'asc']],
+                order: [[1, 'asc']],
                 oLanguage: {
                     sEmptyTable: "Nenhum agendamento encontrado.",
                     sSearch: "Buscar:",
                     sLengthMenu: "Mostrar _MENU_ registros por página",
                     sInfo: "Mostrando de _START_ até _END_ de _TOTAL_ registros",
+                    sInfoFiltered: "(filtrados de _MAX_ registros no total)",
                     sInfoEmpty: "Mostrando 0 até 0 de 0 registros"
                 }
             });
 
-            const filterableColumns = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+            const filterableColumns = [0, 1, 2, 3, 4, 5, 6, 7, 8];
             $('#agendamentosTabela thead th').each(function(index) {
                 if (filterableColumns.includes(index)) {
                     const button = $('<button>', {
@@ -364,7 +362,6 @@
                 const filteredRowsCount = dataTable.rows({ search: 'applied' }).count();
                 document.getElementById("totalCargas").textContent = filteredRowsCount;
 
-                // Atualiza o estado dos botões de filtro
                 $('#agendamentosTabela .filter-button').each(function() {
                     const colIndex = $(this).data('column-index');
                     const search = dataTable.column(colIndex).search();
@@ -374,11 +371,6 @@
                         $(this).text('Filtrar').removeClass('filtered');
                     }
                 });
-            });
-
-            $('#selectAllCheckbox').on('click', function() {
-                const isChecked = $(this).prop('checked');
-                $('.agendamento-checkbox').prop('checked', isChecked);
             });
 
             $('#agendamentosTabela').on('click', '.filter-button', function() {
@@ -435,15 +427,15 @@
         const headers = ["Senha", "Data", "Central", "Cargas", "Pedido de Compra", "Fornecedor", "Tipo de Produto", "Produto", "Volumes"];
         const data = dataTable.rows({ search: 'applied' }).data().toArray().map(row => {
             return [
+                String(row[0]).replace(/<br>/g, ' ').trim(),
                 String(row[1]).replace(/<br>/g, ' ').trim(),
                 String(row[2]).replace(/<br>/g, ' ').trim(),
                 String(row[3]).replace(/<br>/g, ' ').trim(),
                 String(row[4]).replace(/<br>/g, ' ').trim(),
                 String(row[5]).replace(/<br>/g, ' ').trim(),
-                String(row[6]).replace(/<br>/g, ' ').trim(),
-                $(row[7]).text().trim(),
-                String(row[8]).replace(/<br>/g, ' ').trim(),
-                String(row[9]).replace(/<br>/g, ' ').trim()
+                $(row[6]).text().trim(),
+                String(row[7]).replace(/<br>/g, ' ').trim(),
+                String(row[8]).replace(/<br>/g, ' ').trim()
             ];
         });
 
@@ -488,15 +480,15 @@
         const headers = ["Senha", "Data", "Central", "Cargas", "Pedido de Compra", "Fornecedor", "Tipo de Produto", "Produto", "Volumes"];
         const data = dataTable.rows({ search: 'applied' }).data().toArray().map(row => {
             return [
+                String(row[0]).replace(/<br>/g, ' ').trim(),
                 String(row[1]).replace(/<br>/g, ' ').trim(),
                 String(row[2]).replace(/<br>/g, ' ').trim(),
                 String(row[3]).replace(/<br>/g, ' ').trim(),
                 String(row[4]).replace(/<br>/g, ' ').trim(),
                 String(row[5]).replace(/<br>/g, ' ').trim(),
-                String(row[6]).replace(/<br>/g, ' ').trim(),
-                $(row[7]).text().trim(),
-                String(row[8]).replace(/<br>/g, ' ').trim(),
-                String(row[9]).replace(/<br>/g, ' ').trim()
+                $(row[6]).text().trim(),
+                String(row[7]).replace(/<br>/g, ' ').trim(),
+                String(row[8]).replace(/<br>/g, ' ').trim()
             ];
         });
         const worksheet = XLSX.utils.aoa_to_sheet([headers, ...data]);
