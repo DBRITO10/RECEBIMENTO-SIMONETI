@@ -11,15 +11,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-
     <script type="module" src="./firebase-config.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
 
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/scroller/2.2.5/css/scroller.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; background-color: #fafafa; }
@@ -29,6 +27,7 @@
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         thead th { background: #cc0000; color: white; position: relative; }
+        thead th div { display: flex; flex-direction: column; align-items: center; justify-content: center; }
         #exportButtons { margin-bottom: 15px; }
         #exportButtons button {
             display: inline-block;
@@ -53,53 +52,16 @@
         }
 
         .wrap-text { white-space: normal; }
-
         .table-mesa { background-color: #d1e7dd !important; }
         .table-roupeiro { background-color: #fff3cd !important; }
         .table-celular, .table-tablet { background-color: #cce5ff !important; }
         .table-armario, .table-cozinha { background-color: #fff3cd !important; }
-
         .tipo-produto-cell { background-color: inherit; }
         .tipo-produto-cell.table-mesa { background-color: #d1e7dd !important; }
         .tipo-produto-cell.table-roupeiro { background-color: #fff3cd !important; }
         .tipo-produto-cell.table-celular, .tipo-produto-cell.table-tablet { background-color: #cce5ff !important; }
         .tipo-produto-cell.table-armario, .tipo-produto-cell.table-cozinha { background-color: #fff3cd !important; }
 
-        /* Estilos do Modal de Filtro */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 100;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgb(0,0,0);
-            background-color: rgba(0,0,0,0.4);
-            padding-top: 60px;
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 500px;
-            border-radius: 8px;
-            position: relative;
-        }
-        .close-button {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .close-button:hover, .close-button:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
         #userBar {
             background: #E6E6E6;
             padding: 10px;
@@ -124,29 +86,127 @@
             flex-shrink: 0;
             margin-left: 10px;
         }
-        .filter-button {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            padding: 0;
-            margin-left: 5px;
-            font-size: 14px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        /* Estilos do filtro padrão do DataTables */
+        div.dataTables_wrapper div.dataTables_filter {
+            text-align: right;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
         }
+        div.dataTables_wrapper div.dataTables_filter label {
+            width: 100%;
+            max-width: 250px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        div.dataTables_wrapper div.dataTables_filter input {
+            width: calc(100% - 60px);
+            display: inline-block;
+        }
+        .filter-button {
+            background: #d32f2f;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        .filter-button:hover {
+            background-color: #b71c1c;
+        }
+        .filter-button.filtered {
+            background-color: #007bff;
+            box-shadow: 0 2px 6px rgba(0, 123, 255, 0.4);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+        }
+        .modal-content-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+
+        #filter-modal-content {
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #filter-modal-content label {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            cursor: pointer;
+        }
+
+        #filter-modal-content label input {
+            margin-right: 10px;
+            width: auto;
+        }
+
+        #filter-modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        #filter-modal-buttons button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: auto;
+            margin-bottom: 0;
+            display: inline-block;
+        }
+        #apply-filter-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #clear-filter-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
     </style>
 </head>
 <body>
 
 <div id="userBar">
-    <button onclick="window.location.href = 'gerenciamento.html'" style="
-        background: transparent;
-        border: none;
-        color: #333;
-        font-size: 24px;
-        cursor: pointer;
-        margin-right: 10px;
-    ">←</button>
     <span id="welcomeUser" style="font-weight:bold; color:#333; flex-grow: 1;"></span>
     <button onclick="logout()" style="background:#CC0000; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold;">Sair</button>
 </div>
@@ -165,7 +225,6 @@
     <div id="exportButtons">
         <button onclick="exportarExcel()">Exportar Excel</button>
         <button onclick="exportarPDF()">Exportar PDF</button>
-        <button onclick="window.location.href='gerenciamento.html'">Voltar ao Gerenciamento</button>
     </div>
 
     <table id="agendamentosTabela" class="display" style="width:100%">
@@ -173,14 +232,26 @@
             <tr>
                 <th><input type="checkbox" id="selectAllCheckbox"></th>
                 <th>Senha</th>
-                <th>Data <button class="filter-button" data-column-index="2"><i class="fas fa-filter"></i></button></th>
-                <th>Central <button class="filter-button" data-column-index="3"><i class="fas fa-filter"></i></button></th>
-                <th>Cargas <button class="filter-button" data-column-index="4"><i class="fas fa-filter"></i></button></th>
-                <th>Pedido de Compra <button class="filter-button" data-column-index="5"><i class="fas fa-filter"></i></button></th>
-                <th>Fornecedor <button class="filter-button" data-column-index="6"><i class="fas fa-filter"></i></button></th>
-                <th>Tipo de Produto <button class="filter-button" data-column-index="7"><i class="fas fa-filter"></i></button></th>
-                <th>Produto <button class="filter-button" data-column-index="8"><i class="fas fa-filter"></i></button></th>
-                <th>Volumes <button class="filter-button" data-column-index="9"><i class="fas fa-filter"></i></button></th>
+                <th data-column="data">
+                    Data
+                    <button class="filter-button" data-column-index="2"><i class="fas fa-filter"></i></button>
+                </th>
+                <th data-column="central">
+                    Central
+                    <button class="filter-button" data-column-index="3"><i class="fas fa-filter"></i></button>
+                </th>
+                <th>Cargas</th>
+                <th>Pedido de Compra</th>
+                <th data-column="fornecedor">
+                    Fornecedor
+                    <button class="filter-button" data-column-index="6"><i class="fas fa-filter"></i></button>
+                </th>
+                <th data-column="tipoDeProduto">
+                    Tipo de Produto
+                    <button class="filter-button" data-column-index="7"><i class="fas fa-filter"></i></button>
+                </th>
+                <th>Produto</th>
+                <th>Volumes</th>
             </tr>
         </thead>
         <tbody>
@@ -189,22 +260,20 @@
     <p id="carregando" style="text-align: center;">Carregando...</p>
 </div>
 
-<div id="filterModal" class="modal">
-    <div class="modal-content">
-        <span class="close-button">&times;</span>
-        <h2>Filtrar por <span id="filterColumnTitle"></span></h2>
-        <div>
-            <label for="filterSelect">Selecione:</label>
-            <select id="filterSelect"></select>
-        </div>
-        <button id="aplicarFiltroBtn">Aplicar Filtro</button>
-        <button id="limparFiltroBtn">Limpar Filtro</button>
-    </div>
-</div>
-
 <footer>
     <p>Total de Registros: <span id="totalCargas">0</span></p>
 </footer>
+
+<div id="filter-modal" class="modal">
+    <div class="modal-content">
+        <h2>Filtro da Coluna</h2>
+        <div id="filter-modal-content"></div>
+        <div id="filter-modal-buttons">
+            <button id="apply-filter-btn">Aplicar Filtro</button>
+            <button id="clear-filter-btn">Desfazer Filtro</button>
+        </div>
+    </div>
+</div>
 
 <script type="module">
     import { db, auth } from "./firebase-config.js";
@@ -212,66 +281,14 @@
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     let dataTable = null;
+    let currentColIndex = -1;
+    let originalData = [];
+
     const carregandoEl = document.getElementById('carregando');
-    let dadosCache = [];
-    let currentFilteredColumn = -1;
-
-    // Configuração do modal
-    const filterModal = document.getElementById("filterModal");
-    const closeButton = document.querySelector("#filterModal .close-button");
-    const aplicarFiltroBtn = document.getElementById("aplicarFiltroBtn");
-    const limparFiltroBtn = document.getElementById("limparFiltroBtn");
-    const filterSelect = document.getElementById("filterSelect");
-    const filterColumnTitle = document.getElementById("filterColumnTitle");
-
-    $(document).on('click', '.filter-button', function() {
-        const columnIndex = $(this).data('column-index');
-        currentFilteredColumn = columnIndex;
-
-        const column = dataTable.column(columnIndex);
-        const columnTitle = $(column.header()).text().replace('filter', '').trim();
-        filterColumnTitle.textContent = columnTitle;
-
-        const uniqueValues = new Set();
-        column.data().each(function(dado) {
-            const valorLimpo = typeof dado === 'string' ? $(dado).text().trim() : dado;
-            if (valorLimpo) {
-                uniqueValues.add(valorLimpo);
-            }
-        });
-
-        filterSelect.innerHTML = '<option value="">Todos</option>';
-        [...uniqueValues].sort().forEach(valor => {
-            const option = document.createElement('option');
-            option.value = valor;
-            option.textContent = valor;
-            filterSelect.appendChild(option);
-        });
-
-        filterModal.style.display = "block";
-    });
-
-
-    closeButton.onclick = function() {
-        filterModal.style.display = "none";
-    }
-
-    window.onclick = function(event) {
-        if (event.target == filterModal) {
-            filterModal.style.display = "none";
-        }
-    }
-
-    aplicarFiltroBtn.onclick = function() {
-        const selectedValue = filterSelect.value;
-        dataTable.column(currentFilteredColumn).search(selectedValue).draw();
-        filterModal.style.display = "none";
-    }
-
-    limparFiltroBtn.onclick = function() {
-        dataTable.columns().search('').draw();
-        filterModal.style.display = "none";
-    }
+    const filterModal = document.getElementById('filter-modal');
+    const filterModalContent = document.getElementById('filter-modal-content');
+    const applyFilterBtn = document.getElementById('apply-filter-btn');
+    const clearFilterBtn = document.getElementById('clear-filter-btn');
 
     onAuthStateChanged(auth, user => {
         if (user) {
@@ -312,7 +329,6 @@
         carregandoEl.textContent = 'Carregando...';
         const q = query(collection(db, "agendamentos"), orderBy("data", "asc"), orderBy("senha", "asc"));
         onSnapshot(q, (snapshot) => {
-            dadosCache = [];
             const dadosParaTabela = [];
 
             if (snapshot.empty) {
@@ -321,7 +337,6 @@
                 carregandoEl.style.display = 'none';
                 snapshot.forEach(doc => {
                     const agendamento = doc.data();
-                    dadosCache.push(agendamento);
                     const formattedCargas = agendamento.cargas ? agendamento.cargas.replace(/ /g, '<br>') : "Não definido";
                     const formattedPedidoCompra = agendamento.pedidoCompra ? agendamento.pedidoCompra.replace(/ /g, '<br>') : "Não definido";
 
@@ -382,8 +397,53 @@
                 const isChecked = $(this).prop('checked');
                 $('.agendamento-checkbox').prop('checked', isChecked);
             });
+
+            $('#agendamentosTabela').on('click', '.filter-button', function() {
+                openFilterModal($(this).data('column-index'));
+            });
         });
     }
+
+    function openFilterModal(colIndex) {
+        currentColIndex = colIndex;
+        const columnData = dataTable.column(currentColIndex, { search: 'applied' }).data().unique().sort().toArray();
+
+        filterModalContent.innerHTML = '';
+        columnData.forEach(item => {
+            const cleanItem = $(`<div>${item}</div>`).text().trim();
+            const label = document.createElement('label');
+            label.innerHTML = `<input type="checkbox" value="${cleanItem}"> ${cleanItem}`;
+            filterModalContent.appendChild(label);
+        });
+
+        $(filterModal).show();
+    }
+
+    applyFilterBtn.onclick = function() {
+        const selectedItems = [];
+        $(filterModalContent).find('input[type="checkbox"]:checked').each(function() {
+            selectedItems.push($(this).val());
+        });
+
+        if (selectedItems.length > 0) {
+            dataTable.column(currentColIndex).search(selectedItems.join('|'), true, false, true).draw();
+        } else {
+            dataTable.column(currentColIndex).search('').draw();
+        }
+
+        $(filterModal).hide();
+    };
+
+    clearFilterBtn.onclick = function() {
+        dataTable.columns().search('').draw();
+        $(filterModal).hide();
+    };
+
+    $(window).on('click', function(event) {
+        if ($(event.target).is(filterModal)) {
+            $(filterModal).hide();
+        }
+    });
 
     window.exportarPDF = () => {
         const { jsPDF } = window.jspdf;
