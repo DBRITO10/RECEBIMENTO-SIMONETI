@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8" />
-    <title>AGENDAMENTO - MÓVEIS SIMONETTI</title>
+    <title>RELATÓRIO DE CARGAS - MÓVEIS SIMONETTI</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -172,6 +172,19 @@
         .status-cinza { background-color: #9e9e9e; color: white; }
         .status-amarelo { background-color: #ffeb3b; color: black; }
         .status-azul { background-color: #2196F3; color: white; }
+
+        /* Estilo para o contêiner do gráfico para controlar o tamanho */
+        .chart-container {
+            position: relative;
+            height: auto;
+            width: 60%; /* Reduz a largura do gráfico para não ficar tão grande */
+            margin: 20px auto;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                width: 90%; /* Aumenta a largura em telas menores para melhor visualização */
+            }
+        }
     </style>
 </head>
 <body>
@@ -192,7 +205,7 @@
     <h1>RELATÓRIO DE CARGAS</h1>
 </header>
 
-<div style="width: 50%; margin: 20px auto;">
+<div class="chart-container">
     <canvas id="statusChart"></canvas>
 </div>
 
@@ -349,6 +362,10 @@
                 dataTable.destroy();
                 $('#agendamentosTabela tbody').empty();
             }
+            
+            // Carrega o filtro salvo do localStorage, se existir
+            const savedFilter = localStorage.getItem('datatable_filter');
+            const initialSearch = savedFilter ? savedFilter : '';
 
             dataTable = $('#agendamentosTabela').DataTable({
                 data: dadosParaTabela,
@@ -392,6 +409,15 @@
                 });
                 $(this).append('<br>').append(button);
             });
+
+            // Aplica o filtro salvo, se houver
+            if (savedFilter) {
+                const parsedFilter = JSON.parse(savedFilter);
+                if (parsedFilter.colIndex && parsedFilter.regex) {
+                    dataTable.column(parsedFilter.colIndex).search(parsedFilter.regex, true, false, true).draw();
+                }
+            }
+
 
             dataTable.on('draw.dt', function () {
                 const filteredRowsCount = dataTable.rows({ search: 'applied' }).count();
@@ -510,8 +536,16 @@
         if (selectedItems.length > 0) {
             const regex = selectedItems.map(item => $.fn.dataTable.util.escapeRegex(item)).join('|');
             dataTable.column(currentColIndex).search(regex, true, false, true).draw();
+            // Salva o filtro no localStorage
+            const filterToSave = {
+                colIndex: currentColIndex,
+                regex: regex
+            };
+            localStorage.setItem('datatable_filter', JSON.stringify(filterToSave));
         } else {
             dataTable.column(currentColIndex).search('').draw();
+            // Limpa o filtro do localStorage
+            localStorage.removeItem('datatable_filter');
         }
 
         $(filterModal).hide();
@@ -519,6 +553,8 @@
 
     clearFilterBtn.onclick = function() {
         dataTable.column(currentColIndex).search('').draw();
+        // Limpa o filtro do localStorage
+        localStorage.removeItem('datatable_filter');
         $(filterModal).hide();
     };
 
