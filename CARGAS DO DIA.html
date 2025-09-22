@@ -173,16 +173,30 @@
         .status-amarelo { background-color: #ffeb3b; color: black; }
         .status-azul { background-color: #2196F3; color: white; }
 
-        /* Estilo para o contêiner do gráfico para controlar o tamanho */
-        .chart-container {
-            position: relative;
-            height: auto;
-            width: 60%; /* Reduz a largura do gráfico para não ficar tão grande */
+        /* Contêiner principal para o gráfico e a legenda */
+        .chart-and-legend-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             margin: 20px auto;
+            gap: 20px;
         }
-        @media (max-width: 768px) {
+        
+        /* Contêiner para o gráfico em si */
+        .chart-container {
+            width: 100%;
+            height: auto;
+        }
+
+        /* Responsividade para desktop: layout em linha */
+        @media (min-width: 769px) {
+            .chart-and-legend-container {
+                flex-direction: row;
+                justify-content: center;
+                align-items: flex-start;
+            }
             .chart-container {
-                width: 90%; /* Aumenta a largura em telas menores para melhor visualização */
+                max-width: 400px; /* Limita o tamanho do gráfico em desktop */
             }
         }
     </style>
@@ -205,9 +219,12 @@
     <h1>RELATÓRIO DE CARGAS</h1>
 </header>
 
-<div class="chart-container">
-    <canvas id="statusChart"></canvas>
+<div class="chart-and-legend-container">
+    <div class="chart-container">
+        <canvas id="statusChart"></canvas>
+    </div>
 </div>
+
 
 <div class="table-container">
     <table id="agendamentosTabela" class="display" style="width:100%">
@@ -412,9 +429,14 @@
 
             // Aplica o filtro salvo, se houver
             if (savedFilter) {
-                const parsedFilter = JSON.parse(savedFilter);
-                if (parsedFilter.colIndex && parsedFilter.regex) {
-                    dataTable.column(parsedFilter.colIndex).search(parsedFilter.regex, true, false, true).draw();
+                try {
+                    const parsedFilter = JSON.parse(savedFilter);
+                    if (parsedFilter.colIndex !== undefined && parsedFilter.regex) {
+                        dataTable.column(parsedFilter.colIndex).search(parsedFilter.regex, true, false, true).draw();
+                    }
+                } catch (e) {
+                    console.error("Erro ao carregar o filtro do localStorage", e);
+                    localStorage.removeItem('datatable_filter');
                 }
             }
 
@@ -487,7 +509,7 @@
                 responsive: true,
                 plugins: {
                     legend: {
-                        position: 'top',
+                        position: 'right', // Posiciona a legenda à direita
                     },
                     title: {
                         display: true,
