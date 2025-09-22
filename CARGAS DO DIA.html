@@ -1,444 +1,461 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <title>CARGAS DO DIA</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1E90FF">
+    <meta charset="UTF-8" />
+    <title>AGENDAMENTO - MÓVEIS SIMONETTI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Recebimento Simonetti">
-  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
-  <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/scroller/2.2.5/js/dataTables.scroller.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script type="module" src="./firebase-config.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
 
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-  <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/scroller/2.2.5/css/scroller.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
-  <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.dataTables.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #fafafa; }
+        header { text-align: center; margin-bottom: 20px; }
+        h1 { color: #cc0000; font-size: 28px; margin: 10px 0 20px 0; font-weight: bold; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        thead th { background: #cc0000; color: white; position: relative; }
+        thead th div { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            font-size: 14px;
+            color: #666;
+        }
 
-  <style>
-    body { background-color: #F0F8FF; font-family: Arial, sans-serif; color: #000; padding: 10px; margin: 0; box-sizing: border-box; }
-    h1 { 
-      margin-bottom: 16px; 
-      background-color: #1E90FF; 
-      padding: 10px; 
-      border-radius: 4px; 
-      font-size: 6vw; 
-      text-align: center; 
-      color: #fff; 
-    }
-    @media (min-width: 768px) { 
-      h1 { font-size: 28px; } 
-    }
-    table { width: 100%; font-size: 13px; border-collapse: collapse; }
-    thead tr th { 
-      background: #4682B4; 
-      color: #fff; 
-      padding: 8px; 
-      text-align: center; 
-      font-weight: bold; 
-      border: 1px solid #CCC; 
-    }
-    tbody tr:nth-child(even) { background-color: #E6F3FF; }
-    tbody tr:nth-child(odd) { background-color: #FFFFFF; }
-    td { padding: 8px 12px; border: 1px solid #CCC; white-space: nowrap; text-align: center; max-width: 150px; overflow: hidden; text-overflow: ellipsis; color: #000; }
-    .filter-select { width: 100%; padding: 6px; font-size: 13px; background: #B0E0E6; border: 1px solid #CCC; border-radius: 4px; color: #000; text-align: center; appearance: auto; cursor: pointer;}
-    .filter-select.applied {
-        background-color: #FFD700;
-        font-weight: bold;
-    }
-    input.dataTables_filter input { color: #000 !important; background: #B0E0E6 !important; border-radius: 4px; border: 1px solid #CCC; padding: 4px 8px; font-size: 14px; box-sizing: border-box; }
-    table.dataTable th, table.dataTable td { min-width: 120px; text-align: center; }
-    div.dataTables_wrapper { overflow-x: auto; position: relative; }
-    @media (max-width: 768px) { table.dataTable { display: block; width: max-content; } .filter-select { font-size: 14px; } td, th { font-size: 12px; } }
-    .dataTables_wrapper .dataTables_paginate .paginate_button { color: #1E90FF !important; background-color: #fff !important; border: 1px solid #CCC !important; border-radius: 4px; padding: 4px 8px; margin: 2px; font-weight: bold; }
-    .dataTables_wrapper .dataTables_paginate .paginate_button:hover { background-color: #f1f1f1 !important; color: #000 !important; }
-    #btnShare { background:#1E90FF; color:#fff; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; margin-left:10px; }
-    #btnShare:hover { background:#104E8B; }
-    #shareMenu { display:none; position:absolute; background:#fff; border:1px solid #ccc; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.2); z-index:3000; }
-    #shareMenu .share-option { padding:10px 14px; cursor:pointer; font-size:14px; background:#1E90FF; color:#fff; border-radius:4px; margin:4px; text-align:center; }
-    #shareMenu .share-option:hover { background:#104E8B; }
-    #notaOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; }
-    #notaPopup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color: #000; border-radius: 10px; padding: 20px; max-width: 90%; max-height: 70%; overflow-y: auto; z-index: 2100; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-    #notaPopup h2 { margin-top: 0; color: #1E90FF; }
-    #notaPopup button { margin-top: 12px; padding: 6px 14px; border: none; background: #1E90FF; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; }
-    #notaPopup button:hover { background: #104E8B; }
-    
-    .status-cell {
-      font-weight: bold;
-      color: white !important;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    }
-    .status-em-atraso { background-color: #F44336; }
-    .status-carga-recebida { background-color: #4CAF50; }
-    .status-em-recebimento { background-color: #FFC107; }
-    .status-no-patio { background-color: #03A9F4; }
-    .status-reagenda { background-color: #9C27B0; }
+        .wrap-text { white-space: normal; }
+        .table-mesa { background-color: #d1e7dd !important; }
+        .table-roupeiro { background-color: #fff3cd !important; }
+        .table-celular, .table-tablet { background-color: #cce5ff !important; }
+        .table-armario, .table-cozinha { background-color: #fff3cd !important; }
+        .tipo-produto-cell { background-color: inherit; }
+        .tipo-produto-cell.table-mesa { background-color: #d1e7dd !important; }
+        .tipo-produto-cell.table-roupeiro { background-color: #fff3cd !important; }
+        .tipo-produto-cell.table-celular, .tipo-produto-cell.table-tablet { background-color: #cce5ff !important; }
+        .tipo-produto-cell.table-armario, .tipo-produto-cell.table-cozinha { background-color: #fff3cd !important; }
 
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 1000;
-      display: none;
-      justify-content: center;
-      align-items: center;
-    }
-    .modal-content {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-      max-height: 80%;
-      overflow-y: auto;
-    }
-    .modal-checkbox-list {
-      display: flex;
-      flex-direction: column;
-    }
-    .modal-checkbox-list label {
-      margin: 5px 0;
-    }
-    .modal-title {
-      font-size: 1.2em;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-  </style>
+        #userBar {
+            background: #E6E6E6;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #userBar span {
+            flex-shrink: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #userBar button {
+            width: auto;
+            flex-shrink: 0;
+            margin-left: 10px;
+        }
+        .filter-button {
+            background: #d32f2f;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            margin-top: 5px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        .filter-button:hover {
+            background-color: #b71c1c;
+        }
+        .filter-button.filtered {
+            background-color: #007bff;
+            box-shadow: 0 2px 6px rgba(0, 123, 255, 0.4);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+        }
+        .modal-content-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+        #filter-modal-content {
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        #filter-modal-content label {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            cursor: pointer;
+        }
+        #filter-modal-content label input {
+            margin-right: 10px;
+            width: auto;
+        }
+        #filter-modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        #filter-modal-buttons button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: auto;
+            margin-bottom: 0;
+            display: inline-block;
+        }
+        #apply-filter-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #clear-filter-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        /* Classes de cores do status */
+        .status-verde { background-color: #4CAF50; color: white; }
+        .status-laranja { background-color: #ff9800; color: white; }
+        .status-roxo { background-color: #9c27b0; color: white; }
+        .status-vermelho { background-color: #f44336; color: white; }
+        .status-cinza { background-color: #9e9e9e; color: white; }
+        .status-amarelo { background-color: #ffeb3b; color: black; }
+        .status-azul { background-color: #2196F3; color: white; }
+    </style>
 </head>
 <body>
-<script>
-  if (localStorage.getItem("isLoggedIn") !== "true") {
-    window.location.href = "login.html";
-  }
-</script>
-<div id="userBar" style="
-  background:#4682B4; 
-  padding:10px; 
-  display:flex; 
-  justify-content:space-between; 
-  align-items:center; 
-  border-radius:6px; 
-  margin-bottom:12px;
-">
-  <span id="welcomeUser" style="font-weight:bold; color:#fff;"></span>
-  <button onclick="logout()" style="
-    background:#4682B4;
-    color:white;
-    border:none;
-    padding:6px 12px;
-    border-radius:6px;
-    cursor:pointer;
-    font-weight:bold;
-  ">Sair</button>
+
+<div id="userBar">
+    <a href="index.html" style="margin-right: 15px; color: #333;"><i class="fas fa-arrow-left"></i></a>
+    <span id="welcomeUser" style="font-weight:bold; color:#333; flex-grow: 1;"></span>
+    <button onclick="logout()" style="background:#CC0000; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold;">Sair</button>
 </div>
 <script>
-  const username = localStorage.getItem("username") || "Usuário";
-  document.addEventListener("DOMContentLoaded", ()=>{
-    document.getElementById("welcomeUser").textContent = "Bem-vindo, " + username;
-  });
-  function logout(){
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("username");
-    window.location.href = "login.html";
-  }
+    const username = localStorage.getItem("username") || "Usuário";
+    document.addEventListener("DOMContentLoaded", ()=>{
+        document.getElementById("welcomeUser").textContent = "Bem-vindo, " + username;
+    });
 </script>
 
-<h1>CARGAS DO DIA</h1>
-<div style="width: 100%; max-width: 400px; margin: 20px auto;">
-  <canvas id="statusChart"></canvas>
+<header>
+    <h1>RELATÓRIO DE CARGAS</h1>
+</header>
+
+<div class="table-container">
+    <table id="agendamentosTabela" class="display" style="width:100%">
+        <thead>
+            <tr>
+                <th data-column="senha">Senha</th>
+                <th data-column="data">Data</th>
+                <th data-column="central">Central</th>
+                <th data-column="cargas">Cargas</th>
+                <th data-column="status">Status</th>
+                <th data-column="pedidoCompra">Pedido de Compra</th>
+                <th data-column="fornecedor">Fornecedor</th>
+                <th data-column="tipoDeProduto">Tipo de Produto</th>
+                <th data-column="produto">Produto</th>
+                <th data-column="volumes">Volumes</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <p id="carregando" style="text-align: center;">Carregando...</p>
 </div>
 
-<table id="planilha" class="display nowrap">
-  <thead>
-    <tr class="headers"></tr>
-    <tr class="filters"></tr>
-  </thead>
-  <tbody></tbody>
-  <tfoot>
-    <tr><th colspan="7" style="text-align:right; font-weight:bold;" id="totalCargas">Total de Cargas: 0</th></tr>
-  </tfoot>
-</table>
+<footer>
+    <p>Total de Registros: <span id="totalCargas">0</span></p>
+</footer>
 
-<div id="filterModalOverlay" class="modal-overlay">
-    <div id="filterModalContent" class="modal-content">
-        <div id="modalTitle" class="modal-title"></div>
-        <div id="modalCheckboxList" class="modal-checkbox-list"></div>
+<div id="filter-modal" class="modal">
+    <div class="modal-content">
+        <h2>Filtro da Coluna</h2>
+        <div id="filter-modal-content"></div>
+        <div id="filter-modal-buttons">
+            <button id="apply-filter-btn">Aplicar Filtro</button>
+            <button id="clear-filter-btn">Desfazer Filtro</button>
+        </div>
     </div>
 </div>
 
-<div id="notaOverlay"></div>
-<div id="notaPopup">
-  <h2>Detalhes</h2>
-  <div id="notaConteudo"></div>
-  <button id="fecharPopup">Fechar</button>
-</div>
+<script type="module">
+    import { db, auth } from "./firebase-config.js";
+    import { collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-<script>
-const sheetID = "1Ore02M4GARvE6hldNDZmiVNDrABb4dgaZO7wlMY-fjs";
-const gid = "2090543957";
-const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`;
-const colunasDesejadas = ["ORDEM DE AGENDA","DATA","CENTRAL","CARGAS","STATUS","FORNECEDOR","TIPO DE PRODUTO"];
-const coresStatus = {
-    "CARGA RECEBIDA": '#4CAF50',
-    "EM RECEBIMENTO": '#FFC107',
-    "NO PATIO": '#03A9F4',
-    "EM ATRASO": '#F44336',
-    "REAGENDA": '#9C27B0'
-};
+    let dataTable = null;
+    let currentColIndex = -1;
+    let statusOptions = [];
 
-let myChart;
-let dataTable;
+    const carregandoEl = document.getElementById('carregando');
+    const filterModal = document.getElementById('filter-modal');
+    const filterModalContent = document.getElementById('filter-modal-content');
+    const applyFilterBtn = document.getElementById('apply-filter-btn');
+    const clearFilterBtn = document.getElementById('clear-filter-btn');
 
-function renderizarGrafico(data) {
-    const statusCounts = {};
-    const statusIndex = colunasDesejadas.indexOf("STATUS");
-    
-    data.forEach(row => {
-        const status = row[statusIndex];
-        if (status) {
-            statusCounts[status] = (statusCounts[status] || 0) + 1;
+    onAuthStateChanged(auth, user => {
+        if (user) {
+            carregarAgendamentos();
+            carregarStatusOptions();
+        } else {
+            carregandoEl.textContent = "Você precisa estar logado para ver os agendamentos.";
+            window.location.href = "index.html";
         }
     });
 
-    const labels = Object.keys(statusCounts);
-    const chartData = Object.values(statusCounts);
-    const backgroundColors = labels.map(label => coresStatus[label] || '#808080');
+    window.logout = () => {
+        signOut(auth).then(() => {
+            window.location.href = "index.html";
+        }).catch((error) => {
+            console.error("Erro ao fazer logout: ", error);
+        });
+    };
 
-    if (myChart) {
-        myChart.destroy();
+    function formatarData(data) {
+        if (!data) return "Não definida";
+        const [ano, mes, dia] = data.split('-');
+        return `${dia}/${mes}/${ano}`;
     }
 
-    const ctx = document.getElementById('statusChart').getContext('2d');
-    myChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: chartData,
-                backgroundColor: backgroundColors,
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(tooltipItem) {
-                            const total = tooltipItem.dataset.data.reduce((sum, current) => sum + current, 0);
-                            const value = tooltipItem.raw;
-                            const percentage = (value / total * 100).toFixed(1);
-                            return `${tooltipItem.label}: ${value} (${percentage}%)`;
-                        }
+    function getClassForTipoProduto(tipo) {
+        if (!tipo) return '';
+        const tipoLimpo = tipo.toLowerCase().trim();
+        switch (tipoLimpo) {
+            case 'mesa': return 'table-mesa';
+            case 'roupeiro': return 'table-roupeiro';
+            case 'celular': case 'tablet': return 'table-celular';
+            case 'armário': case 'cozinha': return 'table-armario';
+            default: return '';
+        }
+    }
+
+    function getColorClassForStatus(statusName) {
+        const status = statusName ? statusName.toUpperCase().trim() : '';
+        switch (status) {
+            case 'CARGA RECEBIDA': return 'status-verde';
+            case 'CANCELADA': return 'status-laranja';
+            case 'REAGENDA': return 'status-roxo';
+            case 'ATRASADA': return 'status-vermelho';
+            case 'SOB.AJUSTE': return 'status-cinza';
+            case 'EM RECEBIMENTO': return 'status-amarelo';
+            case 'NO PATIO': return 'status-azul';
+            default: return '';
+        }
+    }
+
+    async function carregarStatusOptions() {
+        const q = query(collection(db, "statusOptions"), orderBy("name"));
+        onSnapshot(q, (snapshot) => {
+            statusOptions = [];
+            snapshot.forEach(doc => {
+                statusOptions.push({ id: doc.id, ...doc.data() });
+            });
+            if (dataTable) {
+                dataTable.rows().invalidate('data').draw(false);
+            }
+        });
+    }
+
+    function carregarAgendamentos() {
+        carregandoEl.textContent = 'Carregando...';
+        const q = query(collection(db, "agendamentos"), orderBy("data", "asc"), orderBy("senha", "asc"));
+        onSnapshot(q, (snapshot) => {
+            const dadosParaTabela = [];
+
+            if (snapshot.empty) {
+                carregandoEl.textContent = 'Nenhum agendamento encontrado.';
+            } else {
+                carregandoEl.style.display = 'none';
+                snapshot.forEach(doc => {
+                    const agendamento = doc.data();
+                    const formattedCargas = agendamento.cargas ? agendamento.cargas.replace(/ /g, '<br>') : "Não definido";
+                    const formattedPedidoCompra = agendamento.pedidoCompra ? agendamento.pedidoCompra.replace(/ /g, '<br>') : "Não definido";
+
+                    const statusClass = getColorClassForStatus(agendamento.status);
+                    const statusHtml = `<div class="${statusClass}">${agendamento.status || 'Não definido'}</div>`;
+
+                    dadosParaTabela.push([
+                        agendamento.senha || "Não Definida",
+                        formatarData(agendamento.data),
+                        agendamento.central || "Não definido",
+                        formattedCargas,
+                        statusHtml,
+                        formattedPedidoCompra,
+                        agendamento.fornecedor || "Não definido",
+                        `<div class="tipo-produto-cell ${getClassForTipoProduto(agendamento.tipoDeProduto)}">${agendamento.tipoDeProduto || "Não definido"}</div>`,
+                        agendamento.produto || "Não definido",
+                        agendamento.volumes || "Não definido"
+                    ]);
+                });
+            }
+
+            if (dataTable) {
+                dataTable.destroy();
+                $('#agendamentosTabela tbody').empty();
+            }
+
+            dataTable = $('#agendamentosTabela').DataTable({
+                data: dadosParaTabela,
+                columns: [
+                    { title: "Senha" },
+                    { title: "Data" },
+                    { title: "Central" },
+                    { title: "Cargas" },
+                    { title: "Status" },
+                    { title: "Pedido de Compra" },
+                    { title: "Fornecedor" },
+                    { title: "Tipo de Produto" },
+                    { title: "Produto" },
+                    { title: "Volumes" }
+                ],
+                paging: true,
+                pageLength: 25,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+                info: true,
+                order: [[1, 'asc']],
+                oLanguage: {
+                    sEmptyTable: "Nenhum agendamento encontrado.",
+                    sSearch: "Buscar:",
+                    sLengthMenu: "Mostrar _MENU_ registros por página",
+                    sInfo: "Mostrando de _START_ até _END_ de _TOTAL_ registros",
+                    sInfoFiltered: "(filtrados de _MAX_ registros no total)",
+                    sInfoEmpty: "Mostrando 0 até 0 de 0 registros",
+                    oPaginate: {
+                        sPrevious: "Anterior",
+                        sNext: "Próximo"
                     }
                 }
-            }
+            });
+
+            // Adiciona botões de filtro a todas as colunas
+            $('#agendamentosTabela thead th').each(function(index) {
+                const button = $('<button>', {
+                    'class': 'filter-button',
+                    'data-column-index': index,
+                    'text': 'Filtrar'
+                });
+                $(this).append('<br>').append(button);
+            });
+
+            dataTable.on('draw.dt', function () {
+                const filteredRowsCount = dataTable.rows({ search: 'applied' }).count();
+                document.getElementById("totalCargas").textContent = filteredRowsCount;
+
+                $('#agendamentosTabela .filter-button').each(function() {
+                    const colIndex = $(this).data('column-index');
+                    const search = dataTable.column(colIndex).search();
+                    if (search) {
+                        $(this).text('Aplicado').addClass('filtered');
+                    } else {
+                        $(this).text('Filtrar').removeClass('filtered');
+                    }
+                });
+            });
+
+            $('#agendamentosTabela').on('click', '.filter-button', function() {
+                openFilterModal($(this).data('column-index'));
+            });
+        });
+    }
+
+    function openFilterModal(colIndex) {
+        currentColIndex = colIndex;
+        let columnData;
+
+        if (colIndex === 4) {
+            columnData = statusOptions.map(s => s.name);
+        } else {
+            columnData = dataTable.column(currentColIndex, { search: 'applied' }).data().unique().sort().toArray();
+        }
+
+        filterModalContent.innerHTML = '';
+        columnData.forEach(item => {
+            const cleanItem = $(`<div>${item}</div>`).text().trim();
+            const label = document.createElement('label');
+            label.innerHTML = `<input type="checkbox" value="${cleanItem}"> ${cleanItem}`;
+            filterModalContent.appendChild(label);
+        });
+
+        $(filterModal).css('display', 'flex');
+    }
+
+    applyFilterBtn.onclick = function() {
+        const selectedItems = [];
+        $(filterModalContent).find('input[type="checkbox"]:checked').each(function() {
+            selectedItems.push($(this).val());
+        });
+
+        if (selectedItems.length > 0) {
+            const regex = selectedItems.map(item => $.fn.dataTable.util.escapeRegex(item)).join('|');
+            dataTable.column(currentColIndex).search(regex, true, false, true).draw();
+        } else {
+            dataTable.column(currentColIndex).search('').draw();
+        }
+
+        $(filterModal).hide();
+    };
+
+    clearFilterBtn.onclick = function() {
+        dataTable.column(currentColIndex).search('').draw();
+        $(filterModal).hide();
+    };
+
+    $(window).on('click', function(event) {
+        if ($(event.target).is(filterModal)) {
+            $(filterModal).hide();
         }
     });
-}
 
-Papa.parse(csvUrl, { download: true, header: true, complete: function (results) {
-  const data = results.data;
-  if(!data.length || Object.keys(data[0]).length===0){ alert("Falha ao carregar dados."); return; }
-
-  results.meta.fields = results.meta.fields.map(f=>f.trim());
-  data.forEach(row=>{ Object.keys(row).forEach(k=>{ if(k!==k.trim()){ row[k.trim()]=row[k]; delete row[k]; } }); });
-  data.forEach(row=>{ colunasDesejadas.forEach(col=>{ if(row[col]) row[col]=row[col].trim(); }); });
-
-  const headerRow = document.querySelector("#planilha thead tr.headers");
-  const filterRow = document.querySelector("#planilha thead tr.filters");
-  const tableBody = document.querySelector("#planilha tbody");
-  const statusIndex = colunasDesejadas.indexOf("STATUS");
-
-  colunasDesejadas.forEach(col => {
-    headerRow.innerHTML += `<th>${col}</th>`;
-    filterRow.innerHTML += `<th><button class="filter-select" data-column-name="${col}">Filtrar / Limpar Filtro</button></th>`;
-  });
-  
-  document.querySelector("#planilha tfoot th").setAttribute("colspan", colunasDesejadas.length);
-
-  data.forEach(row => {
-    let rowHtml = "<tr>";
-    colunasDesejadas.forEach((col, index) => {
-      let valor = row[col] || "";
-      let cellHtml = `<td>${valor}</td>`;
-      if (index === statusIndex) {
-        cellHtml = `<td class="status-cell" style="background-color: ${coresStatus[valor] || '#4682B4'};">${valor}</td>`;
-      }
-      rowHtml += cellHtml;
-    });
-    rowHtml += "</tr>";
-    tableBody.innerHTML += rowHtml;
-  });
-
-  dataTable = $("#planilha").DataTable({
-    paging:false, searching:true, info:false, scrollX:true, autoWidth:false,
-    fixedHeader:{header:true, headerOffset:0},
-    stateSave:true,
-    language:{search:"Buscar:", zeroRecords:"Nenhum registro encontrado", infoEmpty:"Nenhum dado disponível"},
-    order: [[0, 'desc']]
-  });
-
-  // Função para aplicar os filtros salvos no localStorage
-  function aplicarFiltrosSalvos() {
-    dataTable.columns().every(function() {
-      const column = this;
-      const columnIndex = column.index();
-      const savedFilter = localStorage.getItem(`filtroColuna${columnIndex}`);
-      if (savedFilter) {
-        const savedValues = JSON.parse(savedFilter);
-        if (savedValues.length > 0) {
-          const searchString = savedValues.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|');
-          column.search(searchString, true, false);
-        }
-      }
-    });
-    dataTable.draw();
-  }
-
-  // Atualiza total de cargas
-  function atualizarTotalCargas(){
-    const total = dataTable.rows({search:'applied'}).data().length;
-    document.getElementById("totalCargas").textContent = "Total de Cargas: "+total;
-  }
-  dataTable.on('draw', () => {
-      atualizarTotalCargas();
-      renderizarGrafico(dataTable.rows({search:'applied'}).data().toArray());
-  });
-
-  $(".dataTables_wrapper").css("position","relative");
-  $("#planilha_filter").append(`
-    <button id="btnShare">📤 Compartilhar</button>
-    <div id="shareMenu">
-      <div class="share-option" data-type="pdf">📄 Exportar PDF</div>
-      <div class="share-option" data-type="excel">📊 Exportar Excel</div>
-    </div>
-  `);
-
-  const shareBtn = document.getElementById("btnShare"); 
-  const shareMenu = document.getElementById("shareMenu");
-  shareBtn.addEventListener("click",()=>{ shareMenu.style.left=(shareBtn.offsetLeft)+"px"; shareMenu.style.top=(shareBtn.offsetTop + shareBtn.offsetHeight + 5)+"px"; shareMenu.style.display="block"; });
-  document.addEventListener("click",(e)=>{ if(!shareBtn.contains(e.target) && !shareMenu.contains(e.target)) shareMenu.style.display="none"; });
-  $(document).on("click",".share-option",function(){
-    const type = $(this).data("type");
-    if(type==="pdf") exportPDF(dataTable);
-    if(type==="excel") exportExcel(dataTable);
-    shareMenu.style.display="none";
-  });
-
-  // Lógica do Modal de Filtro
-  $(document).on('click', '.filter-select', function() {
-      const columnIndex = $(this).closest('th').index();
-      const columnName = colunasDesejadas[columnIndex];
-      const filteredData = dataTable.rows({search:'applied'}).data().toArray();
-      const uniqueValues = [...new Set(filteredData.map(row => row[columnIndex]))].sort();
-      
-      const savedFilter = localStorage.getItem(`filtroColuna${columnIndex}`);
-      const savedValues = savedFilter ? JSON.parse(savedFilter) : [];
-      
-      let checkboxesHtml = '';
-      uniqueValues.forEach(value => {
-          if (value) {
-              const isChecked = savedValues.includes(value) ? 'checked' : '';
-              checkboxesHtml += `
-                  <label>
-                      <input type="checkbox" value="${value}" ${isChecked}> ${value}
-                  </label>
-              `;
-          }
-      });
-
-      $('#modalTitle').text(`Filtrar por ${columnName}`);
-      $('#modalCheckboxList').html(checkboxesHtml);
-      $('#filterModalOverlay').data('column-index', columnIndex).show();
-  });
-
-  // Alterado para reconhecer cliques e toques
-  $('#filterModalOverlay').on('click touchstart', function(e) {
-      if ($(e.target).is('#filterModalOverlay')) {
-          aplicarFiltroModal();
-          $(this).hide();
-      }
-  });
-
-  $('#filterModalContent').on('click', 'input[type="checkbox"]', function() {
-      aplicarFiltroModal();
-  });
-  
-  function atualizarBotaoFiltro() {
-    colunasDesejadas.forEach((col, index) => {
-      const savedFilter = localStorage.getItem(`filtroColuna${index}`);
-      const selectedValues = savedFilter ? JSON.parse(savedFilter) : [];
-      const button = $(`.filter-select[data-column-name="${col}"]`);
-      if (selectedValues.length > 0) {
-        button.text("APLICADO").addClass("applied");
-      } else {
-        button.text("Filtrar / Limpar Filtro").removeClass("applied");
-      }
-    });
-  }
-
-  function aplicarFiltroModal() {
-      const columnIndex = $('#filterModalOverlay').data('column-index');
-      const selectedValues = $('#modalCheckboxList input:checked').map(function() {
-          return this.value;
-      }).get();
-      
-      localStorage.setItem(`filtroColuna${columnIndex}`, JSON.stringify(selectedValues));
-      
-      const searchString = selectedValues.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|');
-      
-      const column = dataTable.column(columnIndex);
-      if (searchString) {
-          column.search(searchString, true, false).draw();
-      } else {
-          column.search('').draw();
-      }
-      atualizarBotaoFiltro();
-      atualizarTotalCargas();
-  }
-  
-  // Executa as funções de atualização e aplicação de filtros após a tabela ser inicializada
-  aplicarFiltrosSalvos();
-  atualizarBotaoFiltro();
-
-}});
-
-// Export PDF/Excel
-function exportPDF(table){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({orientation:"landscape"});
-  const headers = colunasDesejadas;
-  const data = table.rows({search:"applied"}).data().toArray();
-  doc.autoTable({head:[headers], body:data, styles:{fontSize:8, cellPadding:2}});
-  doc.save("recebimento.pdf");
-}
-function exportExcel(table){
-  const headers = colunasDesejadas;
-  const data = table.rows({search:"applied"}).data().toArray();
-  const ws_data = [headers];
-  data.forEach(row=>ws_data.push([...row]));
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(ws_data);
-  XLSX.utils.book_append_sheet(wb,ws,"Recebimento");
-  XLSX.writeFile(wb,"recebimento.xlsx");
-}
 </script>
+
 </body>
 </html>
